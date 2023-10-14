@@ -2,13 +2,14 @@
 #define CONST_H_
 
 // Incbin / binary files
+#define INCBIN_SILENCE_BITCODE_WARNING
 #define INCBIN_PREFIX
 #define INCBIN_STYLE INCBIN_STYLE_SNAKE
 #include "incbin.h"
 #include "font.c"
 
-INCBIN(bolus, "src/gol/bolus.png");
-INCBIN(dvd_logo, "src/dvd/DVD_logo.png");
+INCBIN(bolus, "assets/bolus.png");
+INCBIN(dvd_logo, "assets/DVD_logo.png");
 
 // expand X and turn it into a string literal
 #define STRINGIFY(X) _STRINGIFY(X)

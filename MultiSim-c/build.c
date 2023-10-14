@@ -6,12 +6,16 @@
 /************* Flags & Constants *************/
 // the C compiler to use
 #ifndef CC
+#ifdef __APPLE__
+#define CC "clang"
+#else
 #define CC "gcc"
+#endif
 #endif
 
 // generic C compiler flags
 #ifndef CFLAGS
-#define CFLAGS " -lm -Wall "
+#define CFLAGS " -lm -Wall -I include/ "
 #endif
 
 // for release mode
@@ -21,12 +25,12 @@
 
 // windows-specific compiler flags
 #ifndef CFLAGS_WIN
-#define CFLAGS_WIN " -lwinmm -lgdi32 -lopengl32 -I include/external/deps/mingw "
+#define CFLAGS_WIN " -lwinmm -lgdi32 -lopengl32 -I include/external/deps/mingw -L lib/WIN32/ lib/WIN32/libraylib.a "
 #endif
 
 // macos specific compiler flags (TODO)
 #ifndef CFLAGS_APPLE
-#define CFLAGS_APPLE ""
+#define CFLAGS_APPLE " -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -L lib/macos/ lib/macos/libraylib.a "
 #endif
 
 // raylib linking flags
@@ -34,8 +38,7 @@
 #define RAYFLAGS \
     " -D_GNU_SOURCE -std=gnu99 "\
     "-DGL_SILENCE_DEPRECATION=199309L "\
-    "-I include/ -I include/external/glfw/include -L include/ " \
-    "include/libraylib.a " 
+    "-I include/external/glfw/include "
 #endif
 
 #ifndef IN
@@ -49,7 +52,7 @@
 #if defined(_WIN32)
 #  define COMPILE_CMD CC CFLAGS IN OUT RAYFLAGS CFLAGS_WIN
 #elif defined(__APPLE__)
-#  define COMPILE_CMD CC CFLAGS IN OUT CFLAGS_APPLE RAYFLAGS
+#  define COMPILE_CMD CC CFLAGS IN OUT RAYFLAGS CFLAGS_APPLE
 #else
 #  define COMPILE_CMD COMPILE_CMD " -static "
 #endif
@@ -73,9 +76,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (strcmpi(argv[1], "release") == 0)
+    if (strcmp(argv[1], "release") == 0)
         release_mode = true;
-    else if (strcmpi(argv[1], "debug") == 0)
+    else if (strcmp(argv[1], "debug") == 0)
         release_mode = false;
     else {
         fprintf(stderr, "ERROR: unkown argument: `%s`.\n", argv[1]);
@@ -86,6 +89,7 @@ int main(int argc, char** argv) {
     // release_mode = true | false
 
     const char* command = COMPILE_CMD;
+    printf("$ %s\n", command);
     if (release_mode) {
     #ifdef _WIN32
         command = COMPILE_CMD " -mwindows " CFLAGS_RELEASE;
