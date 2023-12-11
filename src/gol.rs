@@ -107,18 +107,17 @@ impl GameOfLife {
     pub fn run(&mut self) {
         self.rl.set_exit_key(None);
 
-        const REDRAW_STEP: f32 = 0.05;
+        const UPDATE_TIME_STEP: f32 = 0.05;
 
-        let mut redraw_limit = 0.75;
+        let mut update_frame_cap = 0.75;
         let mut passed_time: f32 = 0.0;
 
         while !self.rl.window_should_close() {
             // limit redrawing
-            let dt = self.rl.get_frame_time();
-            if passed_time >= redraw_limit {
+            if passed_time >= update_frame_cap {
                 passed_time = 0.0;
             }
-            passed_time += dt;
+            passed_time += self.rl.get_frame_time();
 
             // get mouse position inside grid
             let mut mouse_pos = self.rl.get_mouse_position().scale_by(1.0 / SCALE as f32);
@@ -128,13 +127,13 @@ impl GameOfLife {
             // update window title
             let title = format!(
                 "Game of Life | mode: {:?} | redraw time: {:.2} | H - help menu",
-                self.state, redraw_limit
+                self.state, update_frame_cap
             );
             self.rl.set_window_title(&self.thread, &title);
 
             match self.state {
                 State::SimulationMode => {
-                    if passed_time >= redraw_limit {
+                    if passed_time >= update_frame_cap {
                         self.update_cells();
                         passed_time = 0.0;
                     }
@@ -165,10 +164,10 @@ impl GameOfLife {
                         self.cells = CELLS_EMPTY;
                     }
                     KeyboardKey::KEY_KP_ADD | KeyboardKey::KEY_EQUAL => {
-                        redraw_limit += REDRAW_STEP;
+                        update_frame_cap += UPDATE_TIME_STEP;
                     }
                     KeyboardKey::KEY_KP_SUBTRACT | KeyboardKey::KEY_MINUS => {
-                        redraw_limit = redraw_limit.sub(REDRAW_STEP).clamp(0.0, f32::MAX);
+                        update_frame_cap = update_frame_cap.sub(UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
                     }
                     KeyboardKey::KEY_SPACE => {
                         self.state = match self.state {
@@ -240,7 +239,7 @@ impl GameOfLife {
                     Color::WHITE,
                 );
                 dr.draw_text(
-                    &format!("+                        - add {REDRAW_STEP:.2}s to redraw time"),
+                    &format!("+                        - add {UPDATE_TIME_STEP:.2}s to update time"),
                     0,
                     200,
                     FONT_M,
@@ -248,7 +247,7 @@ impl GameOfLife {
                 );
                 dr.draw_text(
                     &format!(
-                        "-                        - subtract {REDRAW_STEP:.2}s from redraw time",
+                        "-                        - subtract {UPDATE_TIME_STEP:.2}s from update time",
                     ),
                     0,
                     230,
