@@ -1,6 +1,6 @@
 # Game-Of-Life
+> A rust implementation of Conways Game of Life
 
-A rust implementation of Conways Game of Life
 
 ## What is Game of Life?
 Conways Game of Life is a simple [cellular automaton](https://en.wikipedia.org/wiki/Cellular_automaton) that consists of just **4 simple rules:**
