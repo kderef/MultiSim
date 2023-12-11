@@ -1,21 +1,20 @@
-mod rl_port;
-mod gol;
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
-use raylib::prelude::*;
-use rl_port::*;
+mod gol;
 
 use gol::{
     WINDOW_W, WINDOW_H,
-    GameOfLife,
+    GameOfLife, TITLE_DESIGN_MODE,
 };
 
 fn main() {
-    let (mut rl, thread) = raylib::init()
+    let (rl, thread) = raylib::init()
         .size(WINDOW_W as i32, WINDOW_H as i32)
-        .title("Game of Life")
+        .title(TITLE_DESIGN_MODE)
         .build();
 
     let mut gol = GameOfLife::new(rl, thread);
 
+    gol.prepare();
     gol.run();
 }
