@@ -1,4 +1,5 @@
 use raylib::prelude::*;
+use std::ops::Sub;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
@@ -33,20 +34,16 @@ pub const WINDOW_H: usize = 750;
 pub const GRID_W: usize = WINDOW_W / SCALE;
 pub const GRID_H: usize = WINDOW_H / SCALE;
 
-pub const TITLE_DESIGN_MODE: &str = "Game of Life [DESIGN MODE] - h for help";
-pub const TITLE_SIM_MODE: &str = "Game of Life [SIMULATION MODE] - h for help";
-pub const TITLE_HELP_MODE: &str = "Game of Life [HELP MODE] - ESC to return";
-
 type Cells = [[Cell; GRID_W]; GRID_H];
 
 const CELLS_EMPTY: Cells = [[Cell::Dead; GRID_W]; GRID_H];
 
 /*****************************************************************/
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum State {
     DesignMode,
-    SimMode,
+    SimulationMode,
     HelpMode,
 }
 
@@ -66,10 +63,6 @@ impl GameOfLife {
             thread: th,
             state: State::DesignMode,
         }
-    }
-    pub fn prepare(&mut self) {
-        self.rl.set_target_fps(30);
-        self.rl.set_exit_key(None);
     }
     fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
         const NEIGHBOR_OFFSETS: [(i32, i32); 8] = [
@@ -112,18 +105,48 @@ impl GameOfLife {
         self.cells = next_generation;
     }
     pub fn run(&mut self) {
+        self.rl.set_exit_key(None);
+
+        const REDRAW_STEP: f32 = 0.05;
+
+        let mut redraw_limit = 0.75;
+        let mut passed_time: f32 = 0.0;
+
         while !self.rl.window_should_close() {
+            // limit redrawing
+            let dt = self.rl.get_frame_time();
+            if passed_time >= redraw_limit {
+                passed_time = 0.0;
+            }
+            passed_time += dt;
+
+            // get mouse position inside grid
             let mut mouse_pos = self.rl.get_mouse_position().scale_by(1.0 / SCALE as f32);
             mouse_pos.x = mouse_pos.x.floor();
             mouse_pos.y = mouse_pos.y.floor();
 
+            // update window title
+            let title = format!(
+                "Game of Life | mode: {:?} | redraw time: {:.2} | H - help menu",
+                self.state, redraw_limit
+            );
+            self.rl.set_window_title(&self.thread, &title);
+
             match self.state {
-                State::SimMode => self.update_cells(),
+                State::SimulationMode => {
+                    if passed_time >= redraw_limit {
+                        self.update_cells();
+                        passed_time = 0.0;
+                    }
+                }
                 State::DesignMode => {
-                    if 
-                        self.rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON)
-                    {
+                    if self.rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON) {
                         self.cells[mouse_pos.y as usize][mouse_pos.x as usize] = Cell::Alive;
+                    } else if self
+                        .rl
+                        .is_mouse_button_down(MouseButton::MOUSE_RIGHT_BUTTON)
+                    {
+                        self.cells[mouse_pos.y as usize][mouse_pos.x as usize] = Cell::Dead;
                     }
                 }
                 _ => {}
@@ -134,28 +157,29 @@ impl GameOfLife {
                     KeyboardKey::KEY_H => {
                         if let State::HelpMode = self.state {
                             self.state = State::DesignMode;
-                            self.rl.set_window_title(&self.thread, TITLE_DESIGN_MODE);
                         } else {
                             self.state = State::HelpMode;
-                            self.rl.set_window_title(&self.thread, TITLE_HELP_MODE);
                         }
                     }
                     KeyboardKey::KEY_C => {
                         self.cells = CELLS_EMPTY;
                     }
+                    KeyboardKey::KEY_KP_ADD | KeyboardKey::KEY_EQUAL => {
+                        redraw_limit += REDRAW_STEP;
+                    }
+                    KeyboardKey::KEY_KP_SUBTRACT | KeyboardKey::KEY_MINUS => {
+                        redraw_limit = redraw_limit.sub(REDRAW_STEP).clamp(0.0, f32::MAX);
+                    }
                     KeyboardKey::KEY_SPACE => {
-                        let title;
-                        (self.state, title) = match self.state {
-                            State::DesignMode => (State::SimMode, TITLE_SIM_MODE),
-                            State::SimMode => (State::DesignMode, TITLE_DESIGN_MODE),
-                            State::HelpMode => (State::HelpMode, TITLE_HELP_MODE),
+                        self.state = match self.state {
+                            State::DesignMode => State::SimulationMode,
+                            State::SimulationMode => State::DesignMode,
+                            State::HelpMode => State::HelpMode,
                         };
-                        self.rl.set_window_title(&self.thread, title);
                     }
                     KeyboardKey::KEY_ESCAPE => {
                         if let State::HelpMode = self.state {
                             self.state = State::DesignMode;
-                            self.rl.set_window_title(&self.thread, TITLE_DESIGN_MODE);
                         }
                     }
 
@@ -181,30 +205,53 @@ impl GameOfLife {
                     Color::WHITE,
                 );
                 dr.draw_text(
-                    "Left mouse button - make cell alive",
+                    "Left mouse button  - make cell alive",
                     0,
                     50,
                     FONT_M,
                     Color::WHITE,
                 );
                 dr.draw_text(
-                    "Space                 - pause/unpause game",
+                    "Right mouse button - make cell dead",
                     0,
                     80,
                     FONT_M,
                     Color::WHITE,
                 );
                 dr.draw_text(
-                    "H                       - help menu",
+                    "Space                  - pause/unpause game",
                     0,
                     110,
                     FONT_M,
                     Color::WHITE,
                 );
                 dr.draw_text(
-                    "C                       - clear the board",
+                    "H                        - help menu",
                     0,
                     140,
+                    FONT_M,
+                    Color::WHITE,
+                );
+                dr.draw_text(
+                    "C                        - clear the board",
+                    0,
+                    170,
+                    FONT_M,
+                    Color::WHITE,
+                );
+                dr.draw_text(
+                    &format!("+                        - add {REDRAW_STEP:.2}s to redraw time"),
+                    0,
+                    200,
+                    FONT_M,
+                    Color::WHITE,
+                );
+                dr.draw_text(
+                    &format!(
+                        "-                        - subtract {REDRAW_STEP:.2}s from redraw time",
+                    ),
+                    0,
+                    230,
                     FONT_M,
                     Color::WHITE,
                 );
