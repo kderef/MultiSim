@@ -25,45 +25,6 @@ type Cells = [[Cell; GRID_W]; GRID_H];
 const CELLS_EMPTY: Cells = [[Cell::Dead; GRID_W]; GRID_H];
 
 /*****************************************************************/
-fn get_cell_state(cells: &Cells, x: i32, y: i32) -> Cell {
-    const ALLOWED_X: Range<i32> = 0..(GRID_W as i32);
-    const ALLOWED_Y: Range<i32> = 0..(GRID_H as i32);
-
-    if !(ALLOWED_X.contains(&x) && ALLOWED_Y.contains(&y)) {
-        Cell::Dead
-    } else {
-        cells[y as usize][x as usize]
-    }
-}
-
-fn get_neighbours(cells: &Cells, x: usize, y: usize) -> u8 {
-    let x_i32 = x as i32;
-    let y_i32 = y as i32;
-    let neighbours = [
-        [
-            get_cell_state(cells, x_i32 - 1, y_i32 - 1),
-            get_cell_state(cells, x_i32, y_i32 - 1),
-            get_cell_state(cells, x_i32 + 1, y_i32 - 1),
-        ],
-        [
-            get_cell_state(cells, x_i32 - 1, y_i32),
-            get_cell_state(cells, x_i32, y_i32),
-            get_cell_state(cells, x_i32 + 1, y_i32),
-        ],
-        [
-            get_cell_state(cells, x_i32 - 1, y_i32 + 1),
-            get_cell_state(cells, x_i32, y_i32 + 1),
-            get_cell_state(cells, x_i32 + 1, y_i32 + 1),
-        ],
-    ];
-
-    neighbours
-        .iter()
-        .flatten()
-        .filter(|b| matches!(b, Cell::Alive))
-        .count() as u8
-}
-/*****************************************************************/
 
 #[derive(Clone)]
 enum State {
@@ -93,6 +54,43 @@ impl GameOfLife {
         self.rl.set_target_fps(30);
         self.rl.set_exit_key(None);
     }
+    fn get_cell(&self, x: i32, y: i32) -> Cell {
+        const ALLOWED_X: Range<i32> = 0..(GRID_W as i32);
+        const ALLOWED_Y: Range<i32> = 0..(GRID_H as i32);
+    
+        if !(ALLOWED_X.contains(&x) && ALLOWED_Y.contains(&y)) {
+            Cell::Dead
+        } else {
+            self.cells[y as usize][x as usize]
+        }
+    }
+    fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
+        let x = x as i32;
+        let y = y as i32;
+        let neighbours = [
+            [
+                self.get_cell(x - 1, y - 1),
+                self.get_cell(x, y - 1),
+                self.get_cell(x + 1, y - 1),
+            ],
+            [
+                self.get_cell(x - 1, y),
+                self.get_cell(x, y),
+                self.get_cell(x + 1, y),
+            ],
+            [
+                self.get_cell(x - 1, y + 1),
+                self.get_cell(x, y + 1),
+                self.get_cell(x + 1, y + 1),
+            ],
+        ];
+    
+        neighbours
+            .iter()
+            .flatten()
+            .filter(|b| matches!(b, Cell::Alive))
+            .count()
+    }
     fn update_cells(&mut self) {
         /*
             1 Any live cell with fewer than two live neighbours dies, as if by underpopulation.
@@ -102,7 +100,7 @@ impl GameOfLife {
         */
         for x in 0..GRID_W {
             for y in 0..GRID_H {
-                let neighbours = get_neighbours(&self.cells, x, y);
+                let neighbours = self.calculate_neighbours(x, y);
                 let old_state = self.cells[y][x];
 
                 let new_state = match old_state {
@@ -153,7 +151,10 @@ impl GameOfLife {
                             self.state = State::HelpMode;
                             self.rl.set_window_title(&self.thread, TITLE_HELP_MODE);
                         }
-                    }
+                    },
+                    KeyboardKey::KEY_C => {
+                        self.cells = CELLS_EMPTY;
+                    },
                     KeyboardKey::KEY_SPACE => {
                         let title;
                         (self.state, title) = match self.state {
