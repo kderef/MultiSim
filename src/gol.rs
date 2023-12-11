@@ -4,7 +4,7 @@ use raylib::prelude::*;
 #[derive(Clone, Copy, Debug)]
 pub enum Cell {
     Dead = 0,
-    Alive = 1
+    Alive = 1,
 }
 
 impl Cell {
@@ -27,8 +27,8 @@ impl Cell {
 
 const SCALE: usize = 15;
 
-pub const WINDOW_W: usize = 800;
-pub const WINDOW_H: usize = 600;
+pub const WINDOW_W: usize = 900;
+pub const WINDOW_H: usize = 750;
 
 pub const GRID_W: usize = WINDOW_W / SCALE;
 pub const GRID_H: usize = WINDOW_H / SCALE;
@@ -73,24 +73,29 @@ impl GameOfLife {
     }
     fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
         const NEIGHBOR_OFFSETS: [(i32, i32); 8] = [
-            (-1, -1), (0, -1), (1, -1),
-            (-1, 0),          (1, 0),
-            (-1, 1),  (0, 1),  (1, 1),
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-1, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
         ];
-    
+
         let mut neighbours = 0;
-    
+
         for &(dx, dy) in &NEIGHBOR_OFFSETS {
             let nx = x as i32 + dx;
             let ny = y as i32 + dy;
-    
+
             if (nx >= 0 && nx < GRID_W as i32) && (ny >= 0 && ny < GRID_H as i32) {
                 if let Cell::Alive = self.cells[ny as usize][nx as usize] {
                     neighbours += 1;
                 }
             }
         }
-    
+
         neighbours
     }
     fn update_cells(&mut self) {
@@ -103,23 +108,21 @@ impl GameOfLife {
                 next_generation[y][x] = new_state;
             }
         }
-    
+
         self.cells = next_generation;
     }
     pub fn run(&mut self) {
         while !self.rl.window_should_close() {
+            let mut mouse_pos = self.rl.get_mouse_position().scale_by(1.0 / SCALE as f32);
+            mouse_pos.x = mouse_pos.x.floor();
+            mouse_pos.y = mouse_pos.y.floor();
+
             match self.state {
                 State::SimMode => self.update_cells(),
                 State::DesignMode => {
-                    if self
-                        .rl
-                        .is_mouse_button_pressed(MouseButton::MOUSE_LEFT_BUTTON)
+                    if 
+                        self.rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON)
                     {
-                        let mut mouse_pos =
-                            self.rl.get_mouse_position().scale_by(1.0 / SCALE as f32);
-                        mouse_pos.x = mouse_pos.x.floor();
-                        mouse_pos.y = mouse_pos.y.floor();
-
                         self.cells[mouse_pos.y as usize][mouse_pos.x as usize] = Cell::Alive;
                     }
                 }
@@ -131,6 +134,7 @@ impl GameOfLife {
                     KeyboardKey::KEY_H => {
                         if let State::HelpMode = self.state {
                             self.state = State::DesignMode;
+                            self.rl.set_window_title(&self.thread, TITLE_DESIGN_MODE);
                         } else {
                             self.state = State::HelpMode;
                             self.rl.set_window_title(&self.thread, TITLE_HELP_MODE);
@@ -162,6 +166,7 @@ impl GameOfLife {
             let mut dr = self.rl.begin_drawing(&self.thread);
             dr.clear_background(Color::BLACK);
 
+            // if help mode
             if let State::HelpMode = self.state {
                 const FONT_S: i32 = 19;
                 const FONT_M: i32 = 30;
@@ -236,6 +241,18 @@ impl GameOfLife {
                         },
                     );
                 }
+            }
+
+            // draw mouse hover
+            if let State::DesignMode = self.state {
+                let dim = SCALE as i32;
+                dr.draw_rectangle_lines(
+                    mouse_pos.x as i32 * dim,
+                    mouse_pos.y as i32 * dim,
+                    dim,
+                    dim,
+                    Color::GREEN,
+                );
             }
         }
     }
