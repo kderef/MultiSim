@@ -1,11 +1,28 @@
-use std::ops::Range;
-
 use raylib::prelude::*;
 
-#[derive(Clone, Copy)]
+#[repr(u8)]
+#[derive(Clone, Copy, Debug)]
 pub enum Cell {
-    Alive,
-    Dead,
+    Dead = 0,
+    Alive = 1
+}
+
+impl Cell {
+    fn calculate_next_iteration(&self, neighbours: usize) -> Self {
+        match self {
+            Self::Alive => match neighbours {
+                2..=3 => Self::Alive, // survival
+                _ => Self::Dead,      // under- or overpopulation
+            },
+            Self::Dead => {
+                if neighbours == 3 {
+                    Self::Alive // reproduction
+                } else {
+                    Self::Dead // remain dead
+                }
+            }
+        }
+    }
 }
 
 const SCALE: usize = 15;
@@ -54,68 +71,40 @@ impl GameOfLife {
         self.rl.set_target_fps(30);
         self.rl.set_exit_key(None);
     }
-    fn get_cell(&self, x: i32, y: i32) -> Cell {
-        const ALLOWED_X: Range<i32> = 0..(GRID_W as i32);
-        const ALLOWED_Y: Range<i32> = 0..(GRID_H as i32);
-    
-        if !(ALLOWED_X.contains(&x) && ALLOWED_Y.contains(&y)) {
-            Cell::Dead
-        } else {
-            self.cells[y as usize][x as usize]
-        }
-    }
     fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
-        let x = x as i32;
-        let y = y as i32;
-        let neighbours = [
-            [
-                self.get_cell(x - 1, y - 1),
-                self.get_cell(x, y - 1),
-                self.get_cell(x + 1, y - 1),
-            ],
-            [
-                self.get_cell(x - 1, y),
-                self.get_cell(x, y),
-                self.get_cell(x + 1, y),
-            ],
-            [
-                self.get_cell(x - 1, y + 1),
-                self.get_cell(x, y + 1),
-                self.get_cell(x + 1, y + 1),
-            ],
+        const NEIGHBOR_OFFSETS: [(i32, i32); 8] = [
+            (-1, -1), (0, -1), (1, -1),
+            (-1, 0),          (1, 0),
+            (-1, 1),  (0, 1),  (1, 1),
         ];
     
-        neighbours
-            .iter()
-            .flatten()
-            .filter(|b| matches!(b, Cell::Alive))
-            .count()
-    }
-    fn update_cells(&mut self) {
-
-        for x in 0..GRID_W {
-            for y in 0..GRID_H {
-                let neighbours = self.calculate_neighbours(x, y);
-                let old_state = self.cells[y][x];
-
-                let new_state = match old_state {
-                    Cell::Alive => match neighbours {
-                        0..=1 => Cell::Dead,
-                        2..=3 => Cell::Alive,
-                        _ => Cell::Dead,
-                    },
-                    Cell::Dead => {
-                        if neighbours == 3 {
-                            Cell::Alive
-                        } else {
-                            Cell::Dead
-                        }
-                    }
-                };
-
-                self.cells[y][x] = new_state;
+        let mut neighbours = 0;
+    
+        for &(dx, dy) in &NEIGHBOR_OFFSETS {
+            let nx = x as i32 + dx;
+            let ny = y as i32 + dy;
+    
+            if (nx >= 0 && nx < GRID_W as i32) && (ny >= 0 && ny < GRID_H as i32) {
+                if let Cell::Alive = self.cells[ny as usize][nx as usize] {
+                    neighbours += 1;
+                }
             }
         }
+    
+        neighbours
+    }
+    fn update_cells(&mut self) {
+        let mut next_generation = self.cells;
+
+        for y in 0..GRID_H {
+            for x in 0..GRID_W {
+                let neighbours = self.calculate_neighbours(x, y);
+                let new_state = self.cells[y][x].calculate_next_iteration(neighbours);
+                next_generation[y][x] = new_state;
+            }
+        }
+    
+        self.cells = next_generation;
     }
     pub fn run(&mut self) {
         while !self.rl.window_should_close() {
@@ -146,15 +135,15 @@ impl GameOfLife {
                             self.state = State::HelpMode;
                             self.rl.set_window_title(&self.thread, TITLE_HELP_MODE);
                         }
-                    },
+                    }
                     KeyboardKey::KEY_C => {
                         self.cells = CELLS_EMPTY;
-                    },
+                    }
                     KeyboardKey::KEY_SPACE => {
                         let title;
                         (self.state, title) = match self.state {
-                            State::DesignMode => (State::SimMode, TITLE_DESIGN_MODE),
-                            State::SimMode => (State::DesignMode, TITLE_SIM_MODE),
+                            State::DesignMode => (State::SimMode, TITLE_SIM_MODE),
+                            State::SimMode => (State::DesignMode, TITLE_DESIGN_MODE),
                             State::HelpMode => (State::HelpMode, TITLE_HELP_MODE),
                         };
                         self.rl.set_window_title(&self.thread, title);
