@@ -1,5 +1,5 @@
 # Game-Of-Life
-> A rust implementation of Conways Game of Life
+**A rust implementation of Conways Game of Life**
 
 
 ## What is Game of Life?
