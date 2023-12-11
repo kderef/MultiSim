@@ -3,7 +3,7 @@
 A rust implementation of Conways Game of Life
 
 ## What is Game of Life?
-Conways Game of Life is a simple [cellular automaton](https://en.wikipedia.org/wiki/Cellular_automaton) that consists of just **5 simple rules:**
+Conways Game of Life is a simple [cellular automaton](https://en.wikipedia.org/wiki/Cellular_automaton) that consists of just **4 simple rules:**
 ```
 1: Any live cell with fewer than two live neighbours dies, as if by underpopulation.
 2: Any live cell with two or three live neighbours lives on to the next generation.
