@@ -16,7 +16,7 @@ Learn more from the [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of
 
 ---
 ## Installation instructions
-You can either download the compiled binaries from the [releases tab](releases)
+You can either download the compiled binaries from the [releases tab](/releases)
 or **build from source**
 
 ### Building from source
