@@ -18,10 +18,17 @@ You can either download the compiled binaries from the [releases tab](releases)
 or **build from source**
 
 ### Building from source
-Before installing you need to have [Cargo](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html) installed on your system.
+Before installing you need to have [Cargo](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html) and (*optionally*) [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) installed on your system.
+**If using git:**
 ```
 git clone https://github.com/kn-ht/game-of-life
 cd game-of-life
 cargo build --release
 ```
+**if _not_ using git:**
+First download the source file as a zip by using the download > as zip button, then
+unzip it, open it inside your terminal,
+and run
+`cargo build --release`
+
 The compiled binary will be in `./target/release`
