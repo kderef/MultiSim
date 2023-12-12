@@ -10,9 +10,9 @@ Conways Game of Life is a simple [cellular automaton](https://en.wikipedia.org/w
 3: Any live cell with more than three live neighbours dies, as if by overpopulation.
 4: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 ```
-This implementation is written in Rust using the [raylib-rs](https://github.com/deltaphc/raylib-rs) package, a port of the [Raylib Library for C](https://www.raylib.com/).
+This implementation is written in Rust using the [Macroquad](https://macroquad.rs/) library.
 
-Learn more from the [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
+Learn more about Game of Life from the [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
 ---
 ## Installation instructions
