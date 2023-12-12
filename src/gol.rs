@@ -1,5 +1,5 @@
-use std::ops::Div;
 use macroquad::prelude::*;
+use std::ops::Div;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
@@ -175,51 +175,58 @@ impl GameOfLife {
             const FONT_S: f32 = 19.0;
             const FONT_M: f32 = 30.0;
             const FONT_L: f32 = 35.0;
-            const FONT_XL: f32 = 40.0;
+            const FONT_XL: f32 = 60.0;
 
-            draw_text("CONTROLS", 0.0, 0.0, FONT_XL, WHITE);
-            draw_line(0.0, 45.0, WINDOW_W as f32, 45.0, 5.0, WHITE);
+            draw_text("CONTROLS", 0.0, 34.0, FONT_XL, GREEN);
 
-            draw_text("Left mouse button  - make cell alive", 0.0, 50.0, FONT_M, WHITE);
+            draw_text(
+                "Left mouse button  - make cell alive",
+                0.0,
+                70.0,
+                FONT_M,
+                WHITE,
+            );
             draw_text(
                 "Right mouse button - make cell dead",
                 0.0,
-                80.0,
+                100.0,
                 FONT_M,
                 WHITE,
             );
             draw_text(
-                "Space                  - pause/unpause game",
+                "Space              - pause/unpause game",
                 0.0,
-                110.0,
+                130.0,
                 FONT_M,
                 WHITE,
             );
             draw_text(
-                "H                        - help menu",
+                "H                  - help menu",
                 0.0,
-                140.0,
+                160.0,
                 FONT_M,
                 WHITE,
             );
             draw_text(
-                "C                        - clear the board",
+                "C                  - clear the board",
                 0.0,
-                170.0,
+                190.0,
                 FONT_M,
                 WHITE,
             );
             draw_text(
-                &format!("+                        - subtract {UPDATE_TIME_STEP:.2}s to update time"),
+                &format!(
+                    "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", *update_frame_cap
+                ),
                 0.0,
-                200.0,
+                220.0,
                 FONT_M,
                 WHITE,
             );
             draw_text(
-                "+                        - subtract {UPDATE_TIME_STEP:.2}s to update time",
+                &format!("-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", *update_frame_cap),
                 0.0,
-                230.0,
+                250.0,
                 FONT_M,
                 WHITE,
             );
@@ -261,14 +268,7 @@ impl GameOfLife {
         // draw mouse hover
         if let State::DesignMode = self.state {
             let dim = SCALE as f32;
-            draw_rectangle_lines(
-                mouse_pos.0 * dim,
-                mouse_pos.1 * dim,
-                dim,
-                dim,
-                2.0,
-                GREEN,
-            );
+            draw_rectangle_lines(mouse_pos.0 * dim, mouse_pos.1 * dim, dim, dim, 2.0, GREEN);
 
             draw_text("[DESIGN MODE]", 0.0, WINDOW_H as f32 - 10.0, 30.0, GREEN);
         }
