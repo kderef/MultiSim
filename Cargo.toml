@@ -1,6 +1,6 @@
 [package]
 name = "game-of-life"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,5 +11,4 @@ lto = true
 opt-level = 3
 
 [dependencies]
-format_no_std = "1.0.2"
-raylib = "3.7.0"
+macroquad = "0.4.4"

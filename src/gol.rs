@@ -1,15 +1,5 @@
-use raylib::prelude::{
-    Color, KeyboardKey, MouseButton, RaylibAudio, RaylibDraw, RaylibHandle, RaylibThread, Vector2,
-};
-
-// macro making format easier
-macro_rules! fmt {
-    ($buf:tt, $fmt_string:literal, $($exprs:expr),*) => {
-        format_no_std::show(
-            &mut $buf, format_args!($fmt_string, $($exprs),*)
-        )
-    };
-}
+use std::ops::Div;
+use macroquad::prelude::*;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
@@ -44,6 +34,8 @@ pub const WINDOW_H: usize = 750;
 pub const GRID_W: usize = WINDOW_W / SCALE;
 pub const GRID_H: usize = WINDOW_H / SCALE;
 
+pub const UPDATE_TIME_STEP: f32 = 0.05;
+
 type Cells = [[Cell; GRID_W]; GRID_H];
 
 const CELLS_EMPTY: Cells = [[Cell::Dead; GRID_W]; GRID_H];
@@ -60,17 +52,13 @@ enum State {
 /// game struct
 pub struct GameOfLife {
     cells: Cells,
-    rl: RaylibHandle,
-    thread: RaylibThread,
     state: State,
 }
 
 impl GameOfLife {
-    pub fn new(rl: RaylibHandle, th: RaylibThread) -> Self {
+    pub fn new() -> Self {
         Self {
             cells: CELLS_EMPTY,
-            rl,
-            thread: th,
             state: State::DesignMode,
         }
     }
@@ -114,212 +102,175 @@ impl GameOfLife {
 
         self.cells = next_generation;
     }
-    pub fn run(&mut self) {
-        self.rl.set_exit_key(None);
+    pub fn run(&mut self, passed_time: &mut f32, update_frame_cap: &mut f32) {
+        // get mouse position inside grid
+        let mut mouse_pos = mouse_position();
+        mouse_pos.0 = mouse_pos
+            .0
+            .div(SCALE as f32)
+            .floor()
+            .clamp(0.0, GRID_W as f32 - 1.0);
+        mouse_pos.1 = mouse_pos
+            .1
+            .div(SCALE as f32)
+            .floor()
+            .clamp(0.0, GRID_H as f32 - 1.0);
 
-        const UPDATE_TIME_STEP: f32 = 0.05;
-
-        let mut update_frame_cap = 0.75;
-        let mut passed_time: f32 = 0.0;
-        // window title buffer
-        let mut title_buf = [0u8; 256];
-
-        while !self.rl.window_should_close() {
-            // limit redrawing
-            if passed_time >= update_frame_cap {
-                passed_time = 0.0;
+        match self.state {
+            State::SimulationMode => {
+                if passed_time >= update_frame_cap {
+                    self.update_cells();
+                    *passed_time = 0.0;
+                }
             }
-            passed_time += self.rl.get_frame_time();
+            State::DesignMode => {
+                if is_mouse_button_down(MouseButton::Left) {
+                    self.cells[mouse_pos.1 as usize][mouse_pos.0 as usize] = Cell::Alive;
+                } else if is_mouse_button_down(MouseButton::Right) {
+                    self.cells[mouse_pos.1 as usize][mouse_pos.0 as usize] = Cell::Dead;
+                }
+            }
+            _ => {}
+        }
 
-            // get mouse position inside grid
-            let mut mouse_pos = self.rl.get_mouse_position().scale_by(1.0 / SCALE as f32);
-            mouse_pos.x = mouse_pos.x.floor().clamp(0.0, GRID_W as f32 - 1.0);
-            mouse_pos.y = mouse_pos.y.floor().clamp(0.0, GRID_H as f32 - 1.0);
-
-            // update window title
-
-            let title = format_no_std::show(
-                &mut title_buf,
-                format_args!(
-                    "Game of Life | mode: {:?} | redraw time: {:.2} | H - help menu",
-                    self.state, update_frame_cap
-                ),
-            )
-            .unwrap();
-            self.rl.set_window_title(&self.thread, title);
-
-            match self.state {
-                State::SimulationMode => {
-                    if passed_time >= update_frame_cap {
-                        self.update_cells();
-                        passed_time = 0.0;
+        if let Some(key) = get_last_key_pressed() {
+            match key {
+                KeyCode::H => {
+                    if let State::HelpMode = self.state {
+                        self.state = State::DesignMode;
+                    } else {
+                        self.state = State::HelpMode;
                     }
                 }
-                State::DesignMode => {
-                    if self.rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON) {
-                        self.cells[mouse_pos.y as usize][mouse_pos.x as usize] = Cell::Alive;
-                    } else if self
-                        .rl
-                        .is_mouse_button_down(MouseButton::MOUSE_RIGHT_BUTTON)
-                    {
-                        self.cells[mouse_pos.y as usize][mouse_pos.x as usize] = Cell::Dead;
+                KeyCode::C => {
+                    self.cells = CELLS_EMPTY;
+                }
+                KeyCode::Equal | KeyCode::KpEqual => {
+                    *update_frame_cap += UPDATE_TIME_STEP;
+                }
+                KeyCode::KpSubtract | KeyCode::Minus => {
+                    *update_frame_cap = (*update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
+                }
+                KeyCode::Space => {
+                    self.state = match self.state {
+                        State::DesignMode => State::SimulationMode,
+                        State::SimulationMode => State::DesignMode,
+                        State::HelpMode => State::HelpMode,
+                    };
+                }
+                KeyCode::Escape => {
+                    if let State::HelpMode = self.state {
+                        self.state = State::DesignMode;
                     }
                 }
+
                 _ => {}
             }
+        }
 
-            if let Some(key) = self.rl.get_key_pressed() {
-                match key {
-                    KeyboardKey::KEY_H => {
-                        if let State::HelpMode = self.state {
-                            self.state = State::DesignMode;
-                        } else {
-                            self.state = State::HelpMode;
-                        }
-                    }
-                    KeyboardKey::KEY_C => {
-                        self.cells = CELLS_EMPTY;
-                    }
-                    KeyboardKey::KEY_KP_ADD | KeyboardKey::KEY_EQUAL => {
-                        update_frame_cap += UPDATE_TIME_STEP;
-                    }
-                    KeyboardKey::KEY_KP_SUBTRACT | KeyboardKey::KEY_MINUS => {
-                        update_frame_cap =
-                            (update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
-                    }
-                    KeyboardKey::KEY_SPACE => {
-                        self.state = match self.state {
-                            State::DesignMode => State::SimulationMode,
-                            State::SimulationMode => State::DesignMode,
-                            State::HelpMode => State::HelpMode,
-                        };
-                    }
-                    KeyboardKey::KEY_ESCAPE => {
-                        if let State::HelpMode = self.state {
-                            self.state = State::DesignMode;
-                        }
-                    }
+        clear_background(BLACK);
 
-                    _ => {}
-                }
-            }
+        // if help mode
+        if let State::HelpMode = self.state {
+            const FONT_S: f32 = 19.0;
+            const FONT_M: f32 = 30.0;
+            const FONT_L: f32 = 35.0;
+            const FONT_XL: f32 = 40.0;
 
-            let mut dr = self.rl.begin_drawing(&self.thread);
-            dr.clear_background(Color::BLACK);
+            draw_text("CONTROLS", 0.0, 0.0, FONT_XL, WHITE);
+            draw_line(0.0, 45.0, WINDOW_W as f32, 45.0, 5.0, WHITE);
 
-            // if help mode
-            if let State::HelpMode = self.state {
-                const FONT_S: i32 = 19;
-                const FONT_M: i32 = 30;
-                const FONT_L: i32 = 35;
-                const FONT_XL: i32 = 40;
+            draw_text("Left mouse button  - make cell alive", 0.0, 50.0, FONT_M, WHITE);
+            draw_text(
+                "Right mouse button - make cell dead",
+                0.0,
+                80.0,
+                FONT_M,
+                WHITE,
+            );
+            draw_text(
+                "Space                  - pause/unpause game",
+                0.0,
+                110.0,
+                FONT_M,
+                WHITE,
+            );
+            draw_text(
+                "H                        - help menu",
+                0.0,
+                140.0,
+                FONT_M,
+                WHITE,
+            );
+            draw_text(
+                "C                        - clear the board",
+                0.0,
+                170.0,
+                FONT_M,
+                WHITE,
+            );
+            draw_text(
+                &format!("+                        - subtract {UPDATE_TIME_STEP:.2}s to update time"),
+                0.0,
+                200.0,
+                FONT_M,
+                WHITE,
+            );
+            draw_text(
+                "+                        - subtract {UPDATE_TIME_STEP:.2}s to update time",
+                0.0,
+                230.0,
+                FONT_M,
+                WHITE,
+            );
 
-                let mut buf = [0u8; 128];
+            draw_text(
+                "Press ESC or H to return",
+                0.0,
+                WINDOW_H as f32 - FONT_L,
+                FONT_L,
+                WHITE,
+            );
+            draw_text(
+                "Made by Kian (Kvoid)",
+                WINDOW_W as f32 - 190.0,
+                WINDOW_H as f32 - FONT_S,
+                FONT_S,
+                GRAY,
+            );
+            return;
+        }
 
-                dr.draw_text("CONTROLS:", 0, 0, FONT_XL, Color::WHITE);
-                dr.draw_line_ex(
-                    Vector2::new(0.0, 45.0),
-                    Vector2::new(WINDOW_W as f32, 45.0),
-                    5.0,
-                    Color::WHITE,
-                );
-                dr.draw_text(
-                    "Left mouse button  - make cell alive",
-                    0,
-                    50,
-                    FONT_M,
-                    Color::WHITE,
-                );
-                dr.draw_text(
-                    "Right mouse button - make cell dead",
-                    0,
-                    80,
-                    FONT_M,
-                    Color::WHITE,
-                );
-                dr.draw_text(
-                    "Space                  - pause/unpause game",
-                    0,
-                    110,
-                    FONT_M,
-                    Color::WHITE,
-                );
-                dr.draw_text(
-                    "H                        - help menu",
-                    0,
-                    140,
-                    FONT_M,
-                    Color::WHITE,
-                );
-                dr.draw_text(
-                    "C                        - clear the board",
-                    0,
-                    170,
-                    FONT_M,
-                    Color::WHITE,
-                );
-                fmt!(buf, "+                        - subtract {:.2}s to update time", UPDATE_TIME_STEP).unwrap();
-                dr.draw_text(
-                    core::str::from_utf8(&buf).unwrap(),
-                    0,
-                    200,
-                    FONT_M,
-                    Color::WHITE,
-                );
-                fmt!(buf, "+                        - subtract {:.2}s to update time", UPDATE_TIME_STEP).unwrap();
-                dr.draw_text(
-                    core::str::from_utf8(&buf).unwrap(),
-                    0,
-                    230,
-                    FONT_M,
-                    Color::WHITE,
-                );
-
-                dr.draw_text(
-                    "Press ESC or H to return",
-                    0,
-                    WINDOW_H as i32 - FONT_L,
-                    FONT_L,
-                    Color::WHITE,
-                );
-                dr.draw_text(
-                    "Made by Kian (Kvoid)",
-                    WINDOW_W as i32 - 190,
-                    WINDOW_H as i32 - FONT_S,
-                    FONT_S,
-                    Color::GRAY,
-                );
-                continue;
-            }
-
-            // draw the cells
-            for y in 0..GRID_H {
-                for x in 0..GRID_W {
-                    dr.draw_rectangle(
-                        (x * SCALE) as i32,
-                        (y * SCALE) as i32,
-                        SCALE as i32,
-                        SCALE as i32,
-                        if let Cell::Alive = self.cells[y][x] {
-                            Color::WHITE
-                        } else {
-                            Color::BLACK
-                        },
-                    );
-                }
-            }
-
-            // draw mouse hover
-            if let State::DesignMode = self.state {
-                let dim = SCALE as i32;
-                dr.draw_rectangle_lines(
-                    mouse_pos.x as i32 * dim,
-                    mouse_pos.y as i32 * dim,
-                    dim,
-                    dim,
-                    Color::GREEN,
+        // draw the cells
+        for y in 0..GRID_H {
+            for x in 0..GRID_W {
+                draw_rectangle(
+                    (x * SCALE) as f32,
+                    (y * SCALE) as f32,
+                    SCALE as f32,
+                    SCALE as f32,
+                    if let Cell::Alive = self.cells[y][x] {
+                        WHITE
+                    } else {
+                        BLACK
+                    },
                 );
             }
+        }
+
+        // draw mouse hover
+        if let State::DesignMode = self.state {
+            let dim = SCALE as f32;
+            draw_rectangle_lines(
+                mouse_pos.0 * dim,
+                mouse_pos.1 * dim,
+                dim,
+                dim,
+                2.0,
+                GREEN,
+            );
+
+            draw_text("[DESIGN MODE]", 0.0, WINDOW_H as f32 - 10.0, 30.0, GREEN);
         }
     }
 }
