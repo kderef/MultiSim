@@ -121,8 +121,8 @@ impl GameOfLife {
 
             // get mouse position inside grid
             let mut mouse_pos = self.rl.get_mouse_position().scale_by(1.0 / SCALE as f32);
-            mouse_pos.x = mouse_pos.x.floor();
-            mouse_pos.y = mouse_pos.y.floor();
+            mouse_pos.x = mouse_pos.x.floor().clamp(0.0, GRID_W as f32 - 1.0);
+            mouse_pos.y = mouse_pos.y.floor().clamp(0.0, GRID_H as f32 - 1.0);
 
             // update window title
             let title = format!(
