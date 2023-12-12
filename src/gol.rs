@@ -34,7 +34,8 @@ pub const WINDOW_H: usize = 750;
 pub const GRID_W: usize = WINDOW_W / SCALE;
 pub const GRID_H: usize = WINDOW_H / SCALE;
 
-pub const UPDATE_TIME_STEP: f32 = 0.05;
+const UPDATE_TIME_STEP: f32 = 0.05;
+const DEFAULT_UPDATE_CAP: f32 = 0.50;
 
 type Cells = [[Cell; GRID_W]; GRID_H];
 
@@ -53,6 +54,9 @@ enum State {
 pub struct GameOfLife {
     cells: Cells,
     state: State,
+    update_frame_cap: f32,
+    passed_time: f32,
+    mouse_pos: (f32, f32),
 }
 
 impl GameOfLife {
@@ -60,6 +64,9 @@ impl GameOfLife {
         Self {
             cells: CELLS_EMPTY,
             state: State::DesignMode,
+            update_frame_cap: DEFAULT_UPDATE_CAP,
+            passed_time: 0.0,
+            mouse_pos: (0.0, 0.0),
         }
     }
     fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
@@ -102,15 +109,21 @@ impl GameOfLife {
 
         self.cells = next_generation;
     }
-    pub fn run(&mut self, passed_time: &mut f32, update_frame_cap: &mut f32) {
+    #[inline]
+    pub fn run(&mut self) {
+        if self.passed_time >= self.update_frame_cap {
+            self.passed_time = 0.0;
+        }
+        self.passed_time += get_frame_time();
+
         // get mouse position inside grid
-        let mut mouse_pos = mouse_position();
-        mouse_pos.0 = mouse_pos
+        self.mouse_pos = mouse_position();
+        self.mouse_pos.0 = self.mouse_pos
             .0
             .div(SCALE as f32)
             .floor()
             .clamp(0.0, GRID_W as f32 - 1.0);
-        mouse_pos.1 = mouse_pos
+        self.mouse_pos.1 = self.mouse_pos
             .1
             .div(SCALE as f32)
             .floor()
@@ -118,16 +131,16 @@ impl GameOfLife {
 
         match self.state {
             State::SimulationMode => {
-                if passed_time >= update_frame_cap {
+                if self.passed_time >= self.update_frame_cap {
                     self.update_cells();
-                    *passed_time = 0.0;
+                    self.passed_time = 0.0;
                 }
             }
             State::DesignMode => {
                 if is_mouse_button_down(MouseButton::Left) {
-                    self.cells[mouse_pos.1 as usize][mouse_pos.0 as usize] = Cell::Alive;
+                    self.cells[self.mouse_pos.1 as usize][self.mouse_pos.0 as usize] = Cell::Alive;
                 } else if is_mouse_button_down(MouseButton::Right) {
-                    self.cells[mouse_pos.1 as usize][mouse_pos.0 as usize] = Cell::Dead;
+                    self.cells[self.mouse_pos.1 as usize][self.mouse_pos.0 as usize] = Cell::Dead;
                 }
             }
             _ => {}
@@ -146,10 +159,10 @@ impl GameOfLife {
                     self.cells = CELLS_EMPTY;
                 }
                 KeyCode::Equal | KeyCode::KpEqual => {
-                    *update_frame_cap += UPDATE_TIME_STEP;
+                    self.update_frame_cap += UPDATE_TIME_STEP;
                 }
                 KeyCode::KpSubtract | KeyCode::Minus => {
-                    *update_frame_cap = (*update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
+                    self.update_frame_cap = (self.update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
                 }
                 KeyCode::Space => {
                     self.state = match self.state {
@@ -216,7 +229,7 @@ impl GameOfLife {
             );
             draw_text(
                 &format!(
-                    "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", *update_frame_cap
+                    "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", self.update_frame_cap
                 ),
                 0.0,
                 220.0,
@@ -224,7 +237,7 @@ impl GameOfLife {
                 WHITE,
             );
             draw_text(
-                &format!("-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", *update_frame_cap),
+                &format!("-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", self.update_frame_cap),
                 0.0,
                 250.0,
                 FONT_M,
@@ -268,7 +281,7 @@ impl GameOfLife {
         // draw mouse hover
         if let State::DesignMode = self.state {
             let dim = SCALE as f32;
-            draw_rectangle_lines(mouse_pos.0 * dim, mouse_pos.1 * dim, dim, dim, 2.0, GREEN);
+            draw_rectangle_lines(self.mouse_pos.0 * dim, self.mouse_pos.1 * dim, dim, dim, 2.0, GREEN);
 
             draw_text("[DESIGN MODE]", 0.0, WINDOW_H as f32 - 10.0, 30.0, GREEN);
         }
