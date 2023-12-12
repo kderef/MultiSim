@@ -1,5 +1,15 @@
-use raylib::prelude::*;
-use std::ops::Sub;
+use raylib::prelude::{
+    Color, KeyboardKey, MouseButton, RaylibAudio, RaylibDraw, RaylibHandle, RaylibThread, Vector2,
+};
+
+// macro making format easier
+macro_rules! fmt {
+    ($buf:tt, $fmt_string:literal, $($exprs:expr),*) => {
+        format_no_std::show(
+            &mut $buf, format_args!($fmt_string, $($exprs),*)
+        )
+    };
+}
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
@@ -111,6 +121,8 @@ impl GameOfLife {
 
         let mut update_frame_cap = 0.75;
         let mut passed_time: f32 = 0.0;
+        // window title buffer
+        let mut title_buf = [0u8; 256];
 
         while !self.rl.window_should_close() {
             // limit redrawing
@@ -125,11 +137,16 @@ impl GameOfLife {
             mouse_pos.y = mouse_pos.y.floor().clamp(0.0, GRID_H as f32 - 1.0);
 
             // update window title
-            let title = format!(
-                "Game of Life | mode: {:?} | redraw time: {:.2} | H - help menu",
-                self.state, update_frame_cap
-            );
-            self.rl.set_window_title(&self.thread, &title);
+
+            let title = format_no_std::show(
+                &mut title_buf,
+                format_args!(
+                    "Game of Life | mode: {:?} | redraw time: {:.2} | H - help menu",
+                    self.state, update_frame_cap
+                ),
+            )
+            .unwrap();
+            self.rl.set_window_title(&self.thread, title);
 
             match self.state {
                 State::SimulationMode => {
@@ -167,7 +184,8 @@ impl GameOfLife {
                         update_frame_cap += UPDATE_TIME_STEP;
                     }
                     KeyboardKey::KEY_KP_SUBTRACT | KeyboardKey::KEY_MINUS => {
-                        update_frame_cap = update_frame_cap.sub(UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
+                        update_frame_cap =
+                            (update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
                     }
                     KeyboardKey::KEY_SPACE => {
                         self.state = match self.state {
@@ -195,6 +213,8 @@ impl GameOfLife {
                 const FONT_M: i32 = 30;
                 const FONT_L: i32 = 35;
                 const FONT_XL: i32 = 40;
+
+                let mut buf = [0u8; 128];
 
                 dr.draw_text("CONTROLS:", 0, 0, FONT_XL, Color::WHITE);
                 dr.draw_line_ex(
@@ -238,17 +258,17 @@ impl GameOfLife {
                     FONT_M,
                     Color::WHITE,
                 );
+                fmt!(buf, "+                        - subtract {:.2}s to update time", UPDATE_TIME_STEP).unwrap();
                 dr.draw_text(
-                    &format!("+                        - add {UPDATE_TIME_STEP:.2}s to update time"),
+                    core::str::from_utf8(&buf).unwrap(),
                     0,
                     200,
                     FONT_M,
                     Color::WHITE,
                 );
+                fmt!(buf, "+                        - subtract {:.2}s to update time", UPDATE_TIME_STEP).unwrap();
                 dr.draw_text(
-                    &format!(
-                        "-                        - subtract {UPDATE_TIME_STEP:.2}s from update time",
-                    ),
+                    core::str::from_utf8(&buf).unwrap(),
                     0,
                     230,
                     FONT_M,

@@ -11,4 +11,5 @@ lto = true
 opt-level = 3
 
 [dependencies]
+format_no_std = "1.0.2"
 raylib = "3.7.0"
