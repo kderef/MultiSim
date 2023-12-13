@@ -1,6 +1,9 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+// #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
+mod cell;
 mod gol;
+mod universe;
+
 use gol::{GameOfLife, WINDOW_H, WINDOW_W};
 use macroquad::prelude::*;
 
@@ -11,7 +14,7 @@ fn window_conf() -> Conf {
         window_height: WINDOW_H as i32,
         high_dpi: true,
         fullscreen: false,
-        window_resizable: false,
+        window_resizable: true,
         sample_count: Default::default(),
         icon: None,
         platform: Default::default()

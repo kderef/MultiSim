@@ -1,30 +1,6 @@
-use macroquad::prelude::*;
-use std::ops::Div;
-
-#[repr(u8)]
-#[derive(Clone, Copy, Debug)]
-pub enum Cell {
-    Dead = 0,
-    Alive = 1,
-}
-
-impl Cell {
-    fn calculate_next_iteration(&self, neighbours: usize) -> Self {
-        match self {
-            Self::Alive => match neighbours {
-                2..=3 => Self::Alive, // survival
-                _ => Self::Dead,      // under- or overpopulation
-            },
-            Self::Dead => {
-                if neighbours == 3 {
-                    Self::Alive // reproduction
-                } else {
-                    Self::Dead // remain dead
-                }
-            }
-        }
-    }
-}
+use crate::cell::Cell;
+use crate::universe::Universe;
+use macroquad::{miniquad::window::set_window_size, prelude::*};
 
 const SCALE: usize = 15;
 
@@ -37,10 +13,6 @@ pub const GRID_H: usize = WINDOW_H / SCALE;
 const UPDATE_TIME_STEP: f32 = 0.05;
 const DEFAULT_UPDATE_CAP: f32 = 0.50;
 
-type Cells = [[Cell; GRID_W]; GRID_H];
-
-const CELLS_EMPTY: Cells = [[Cell::Dead; GRID_W]; GRID_H];
-
 /*****************************************************************/
 
 #[derive(Clone, Debug)]
@@ -52,21 +24,25 @@ enum State {
 
 /// game struct
 pub struct GameOfLife {
-    cells: Cells,
+    universe: Universe,
     state: State,
     update_frame_cap: f32,
     passed_time: f32,
-    mouse_pos: (f32, f32),
+    mouse_pos: Vec2,
+    window_width: u32,
+    window_height: u32,
 }
 
 impl GameOfLife {
     pub fn new() -> Self {
         Self {
-            cells: CELLS_EMPTY,
+            universe: Universe::new(GRID_W, GRID_H),
             state: State::DesignMode,
             update_frame_cap: DEFAULT_UPDATE_CAP,
             passed_time: 0.0,
-            mouse_pos: (0.0, 0.0),
+            mouse_pos: (0.0, 0.0).into(),
+            window_width: 0,
+            window_height: 0,
         }
     }
     fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
@@ -87,65 +63,39 @@ impl GameOfLife {
             let nx = x as i32 + dx;
             let ny = y as i32 + dy;
 
-            if (nx >= 0 && nx < GRID_W as i32) && (ny >= 0 && ny < GRID_H as i32) {
-                if let Cell::Alive = self.cells[ny as usize][nx as usize] {
+            if (nx >= 0 && nx < self.universe.width as i32)
+                && (ny >= 0 && ny < self.universe.height as i32)
+            {
+                if let Cell::Alive = self.universe.get(nx as usize, ny as usize) {
                     neighbours += 1;
                 }
             }
         }
-
         neighbours
     }
-    fn update_cells(&mut self) {
-        let mut next_generation = self.cells;
+    fn enforce_minimun_screen_size(&mut self) {
+        if self.window_width < WINDOW_W as u32 || self.window_height < WINDOW_H as u32 {
+            let new_width = self.window_width.max(WINDOW_W as u32);
+            let new_height = self.window_height.max(WINDOW_H as u32);
 
-        for y in 0..GRID_H {
-            for x in 0..GRID_W {
-                let neighbours = self.calculate_neighbours(x, y);
-                let new_state = self.cells[y][x].calculate_next_iteration(neighbours);
-                next_generation[y][x] = new_state;
-            }
+            set_window_size(new_width, new_height);
+            self.window_width = new_width;
+            self.window_height = new_height;
         }
-
-        self.cells = next_generation;
     }
-    #[inline]
-    pub fn run(&mut self) {
-        if self.passed_time >= self.update_frame_cap {
-            self.passed_time = 0.0;
-        }
-        self.passed_time += get_frame_time();
+    fn screen_size_changed(&mut self) -> bool {
+        let new_width = screen_width().round() as u32;
+        let new_height = screen_height().round() as u32;
 
-        // get mouse position inside grid
-        self.mouse_pos = mouse_position();
-        self.mouse_pos.0 = self.mouse_pos
-            .0
-            .div(SCALE as f32)
-            .floor()
-            .clamp(0.0, GRID_W as f32 - 1.0);
-        self.mouse_pos.1 = self.mouse_pos
-            .1
-            .div(SCALE as f32)
-            .floor()
-            .clamp(0.0, GRID_H as f32 - 1.0);
+        let changed = (self.window_width > 0 && self.window_height > 0)
+            && (new_width != self.window_width || new_height != self.window_height);
 
-        match self.state {
-            State::SimulationMode => {
-                if self.passed_time >= self.update_frame_cap {
-                    self.update_cells();
-                    self.passed_time = 0.0;
-                }
-            }
-            State::DesignMode => {
-                if is_mouse_button_down(MouseButton::Left) {
-                    self.cells[self.mouse_pos.1 as usize][self.mouse_pos.0 as usize] = Cell::Alive;
-                } else if is_mouse_button_down(MouseButton::Right) {
-                    self.cells[self.mouse_pos.1 as usize][self.mouse_pos.0 as usize] = Cell::Dead;
-                }
-            }
-            _ => {}
-        }
+        self.window_width = new_width;
+        self.window_height = new_height;
 
+        changed
+    }
+    fn handle_keys(&mut self) {
         if let Some(key) = get_last_key_pressed() {
             match key {
                 KeyCode::H => {
@@ -156,13 +106,14 @@ impl GameOfLife {
                     }
                 }
                 KeyCode::C => {
-                    self.cells = CELLS_EMPTY;
+                    self.universe.clear();
                 }
                 KeyCode::Equal | KeyCode::KpEqual => {
                     self.update_frame_cap += UPDATE_TIME_STEP;
                 }
                 KeyCode::KpSubtract | KeyCode::Minus => {
-                    self.update_frame_cap = (self.update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
+                    self.update_frame_cap =
+                        (self.update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
                 }
                 KeyCode::Space => {
                     self.state = match self.state {
@@ -179,6 +130,67 @@ impl GameOfLife {
 
                 _ => {}
             }
+        }
+    }
+    fn update_cells(&mut self) {
+        let mut next_generation = self.universe.clone();
+
+        for y in 0..self.universe.height {
+            for x in 0..self.universe.width {
+                let neighbours = self.calculate_neighbours(x, y);
+                let new_state = self.universe.get(x, y).calculate_next_iteration(neighbours);
+                next_generation.set(x, y, new_state);
+            }
+        }
+
+        self.universe = next_generation;
+    }
+
+    pub fn run(&mut self) {
+        if self.passed_time >= self.update_frame_cap {
+            self.passed_time = 0.0;
+        }
+        self.passed_time += get_frame_time();
+
+        self.handle_keys();
+
+        if self.screen_size_changed() {
+            self.enforce_minimun_screen_size();
+            self.universe.resize(self.window_width as usize, self.window_height as usize);
+        }
+
+        // get mouse position inside grid
+        self.mouse_pos = Vec2::from(mouse_position()).floor().clamp(
+            vec2(0.0, 0.0),
+            Vec2::new(
+                self.window_width as f32 - 1.0,
+                self.window_height as f32 - 1.0,
+            ),
+        ) / SCALE as f32;
+
+        match self.state {
+            State::SimulationMode => {
+                if self.passed_time >= self.update_frame_cap {
+                    self.update_cells();
+                    self.passed_time = 0.0;
+                }
+            }
+            State::DesignMode => {
+                if is_mouse_button_down(MouseButton::Left) {
+                    self.universe.set(
+                        self.mouse_pos.x as usize,
+                        self.mouse_pos.y as usize,
+                        Cell::Alive,
+                    );
+                } else if is_mouse_button_down(MouseButton::Right) {
+                    self.universe.set(
+                        self.mouse_pos.x as usize,
+                        self.mouse_pos.y as usize,
+                        Cell::Dead,
+                    );
+                }
+            }
+            _ => {}
         }
 
         clear_background(BLACK);
@@ -213,13 +225,7 @@ impl GameOfLife {
                 FONT_M,
                 WHITE,
             );
-            draw_text(
-                "H                  - help menu",
-                0.0,
-                160.0,
-                FONT_M,
-                WHITE,
-            );
+            draw_text("H                  - help menu", 0.0, 160.0, FONT_M, WHITE);
             draw_text(
                 "C                  - clear the board",
                 0.0,
@@ -229,7 +235,8 @@ impl GameOfLife {
             );
             draw_text(
                 &format!(
-                    "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", self.update_frame_cap
+                    "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
+                    self.update_frame_cap
                 ),
                 0.0,
                 220.0,
@@ -237,7 +244,10 @@ impl GameOfLife {
                 WHITE,
             );
             draw_text(
-                &format!("-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)", self.update_frame_cap),
+                &format!(
+                    "-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
+                    self.update_frame_cap
+                ),
                 0.0,
                 250.0,
                 FONT_M,
@@ -247,14 +257,14 @@ impl GameOfLife {
             draw_text(
                 "Press ESC or H to return",
                 0.0,
-                WINDOW_H as f32 - FONT_L,
+                self.window_height as f32 - FONT_L,
                 FONT_L,
                 WHITE,
             );
             draw_text(
                 "Made by Kian (Kvoid)",
-                WINDOW_W as f32 - 190.0,
-                WINDOW_H as f32 - FONT_S,
+                self.window_width as f32 - 190.0,
+                self.window_height as f32 - FONT_S,
                 FONT_S,
                 GRAY,
             );
@@ -262,14 +272,14 @@ impl GameOfLife {
         }
 
         // draw the cells
-        for y in 0..GRID_H {
-            for x in 0..GRID_W {
+        for y in 0..self.universe.height {
+            for x in 0..self.universe.width {
                 draw_rectangle(
                     (x * SCALE) as f32,
                     (y * SCALE) as f32,
                     SCALE as f32,
                     SCALE as f32,
-                    if let Cell::Alive = self.cells[y][x] {
+                    if let Cell::Alive = self.universe.get(x, y) {
                         WHITE
                     } else {
                         BLACK
@@ -281,9 +291,22 @@ impl GameOfLife {
         // draw mouse hover
         if let State::DesignMode = self.state {
             let dim = SCALE as f32;
-            draw_rectangle_lines(self.mouse_pos.0 * dim, self.mouse_pos.1 * dim, dim, dim, 2.0, GREEN);
+            draw_rectangle_lines(
+                self.mouse_pos.x.floor() * dim,
+                self.mouse_pos.y.floor() * dim,
+                dim,
+                dim,
+                2.0,
+                GREEN,
+            );
 
-            draw_text("[DESIGN MODE]", 0.0, WINDOW_H as f32 - 10.0, 30.0, GREEN);
+            draw_text(
+                "[DESIGN MODE]",
+                0.0,
+                self.window_height as f32 - 10.0,
+                30.0,
+                GREEN,
+            );
         }
     }
 }
