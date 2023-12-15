@@ -1,4 +1,7 @@
-use crate::{cell::{Cell, Cells}, consts::SCALE};
+use crate::{
+    cell::{Cell, Cells},
+    consts::SCALE,
+};
 
 #[derive(Clone)]
 pub struct Universe {
@@ -30,18 +33,47 @@ impl Universe {
         let i = self.index(x, y);
         self.cells[i] = val;
     }
+    pub fn invert(&mut self) {
+        self.cells = self
+            .cells
+            .iter()
+            .map(|c| {
+                if let Cell::Alive = c {
+                    Cell::Dead
+                } else {
+                    Cell::Alive
+                }
+            })
+            .collect();
+    }
+    pub fn fill_random(&mut self) {
+        self.cells.fill(Cell::Dead);
+        self.cells = std::iter::repeat_with(|| {
+                let n = macroquad::rand::rand();
+                if n % 2 == 0 || n % 7 == 0 {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
+            })
+            .take(self.width * self.height)
+            .collect();
+    }
     pub fn resize(&mut self, new_width: usize, new_height: usize) {
         if new_width <= self.width && new_height <= self.height {
             return;
         }
-    
+
         // Adjust width and height to be multiples of SCALE
         let new_width = (new_width + SCALE - 1) / SCALE * SCALE;
         let new_height = (new_height + SCALE - 1) / SCALE * SCALE;
 
         // Limit the grid size to the maximum defined values
         let mut new_cells = vec![Cell::Dead; new_width * new_height];
-        println!("old: {}x{} new: {}x{}", self.width, self.height, new_width, new_height);
+        println!(
+            "old: {}x{} new: {}x{}",
+            self.width, self.height, new_width, new_height
+        );
 
         // Copy existing cells to new_cells, adjusting for the size difference
         for y in 0..self.height.min(new_height) {
@@ -49,7 +81,7 @@ impl Universe {
                 new_cells[y * new_width + x] = self.get(x, y);
             }
         }
-        
+
         self.width = new_width;
         self.height = new_height;
 

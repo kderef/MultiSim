@@ -1,7 +1,7 @@
 use crate::cell::Cell;
 use crate::consts::*;
 use crate::universe::Universe;
-use crate::theme::{Theme, Style};
+use crate::theme::Theme;
 use macroquad::prelude::*;
 /*****************************************************************/
 
@@ -27,7 +27,6 @@ pub struct GameOfLife {
     // game state
     universe: Universe,
     state: State,
-    fullscreen: bool,
     // delta time
     update_frame_cap: f32,
     passed_time: f32,
@@ -46,7 +45,6 @@ impl GameOfLife {
         Self {
             universe: Universe::new(GRID_W, GRID_H),
             state: State::HelpMode,
-            fullscreen: true,
             update_frame_cap: DEFAULT_UPDATE_CAP,
             passed_time: 0.0,
             passed_resize_time: 0.0,
@@ -94,6 +92,12 @@ impl GameOfLife {
                 }
                 KeyCode::T => {
                     self.cycle_theme();
+                }
+                KeyCode::I => {
+                    self.universe.invert();
+                }
+                KeyCode::R => {
+                    self.universe.fill_random();
                 }
                 KeyCode::Equal | KeyCode::KpEqual => {
                     self.update_frame_cap += UPDATE_TIME_STEP;
@@ -269,6 +273,18 @@ impl GameOfLife {
             );
             spacing += FONT_M;
             draw_text(
+                "I                  - invert cells",
+                0.0, spacing,
+                FONT_M, fg
+            );
+            spacing += FONT_M;
+            draw_text(
+                "R                  - generate a random pattern",
+                0.0, spacing,
+                FONT_M, fg
+            );
+            spacing += FONT_M;
+            draw_text(
                 &format!("T                  - switch themes (currently: {:?})", self.theme),
                 0.0, spacing,
                 FONT_M, fg
@@ -295,6 +311,7 @@ impl GameOfLife {
                 FONT_M,
                 fg,
             );
+
 
             draw_text(
                 "Press ESC or H to return",
@@ -366,7 +383,7 @@ impl GameOfLife {
                 "[DESIGN MODE]",
                 0.0,
                 self.window_height as f32 - 10.0,
-                30.0,
+                34.0,
                 accent,
             );
 
@@ -374,14 +391,14 @@ impl GameOfLife {
                 &format!("UPDATE: {:.2}s",
                     self.update_frame_cap
                 ),
-                0.0, 20.0, 25.0,
+                0.0, 25.0, 30.0,
                 accent
             );
             draw_text(
                 &format!("THEME: {:?}",
                     self.theme    
                 ),
-                0.0, 40.0, 25.0,
+                0.0, 50.0, 30.0,
                 accent
             );
         }

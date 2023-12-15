@@ -1,5 +1,5 @@
 [package]
-name = "gol-rs"
+name = "game-of-life"
 description = "A Game of Life simulator"
 authors = ["Kian Heitkamp"]
 version = "1.0.7"
@@ -9,8 +9,8 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [package.metadata.winres]
-OriginalFilename = "gol.rs"
-ProductName = "GOL.rs"
+OriginalFilename = "game-of-life.exe"
+ProductName = "GOL sim by Kian Heitkamp"
 FileDescription = "Game of Life simulator"
 
 
