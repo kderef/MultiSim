@@ -1,8 +1,8 @@
 use crate::cell::Cell;
 use crate::consts::*;
 use crate::universe::Universe;
-use macroquad::{miniquad::window::set_window_size, prelude::*};
-
+use crate::theme::{Theme, Style};
+use macroquad::prelude::*;
 /*****************************************************************/
 
 #[derive(Clone, Debug)]
@@ -24,15 +24,20 @@ impl State {
 
 /// game struct
 pub struct GameOfLife {
+    // game state
     universe: Universe,
     state: State,
+    // delta time
     update_frame_cap: f32,
     passed_time: f32,
     passed_resize_time: f32,
     resize_queued: bool,
+    // meta information
     mouse_pos: Vec2,
     window_width: u32,
     window_height: u32,
+    // themes
+    theme: Theme,
 }
 
 impl GameOfLife {
@@ -47,23 +52,16 @@ impl GameOfLife {
             mouse_pos: (0.0, 0.0).into(),
             window_width: 0,
             window_height: 0,
+            theme: Theme::Default,
         }
+
     }
     pub fn update_screen_size(&mut self) {
         self.window_width = screen_width() as u32;
         self.window_height = screen_height() as u32;
     }
-    fn enforce_minimun_screen_size(&mut self) {
-        const WIN_W_U32: u32 = WINDOW_W as u32;
-        const WIN_H_U32: u32 = WINDOW_H as u32;
-
-        println!("{} < {WIN_W_U32} || {} < {WIN_H_U32}", self.window_width, self.window_height);
-        if self.window_width < WIN_W_U32 || self.window_height < WIN_H_U32 {
-            self.window_width = self.window_width.max(WIN_W_U32);
-            self.window_height = self.window_height.max(WIN_H_U32);
-
-            set_window_size(self.window_width, self.window_height); 
-        }
+    fn cycle_theme(&mut self) {
+        self.theme.cycle();
     }
     fn screen_size_changed(&mut self) -> bool {
         let new_width = screen_width().floor() as u32;
@@ -91,6 +89,9 @@ impl GameOfLife {
                 }
                 KeyCode::A => {
                     self.universe.fill(Cell::Alive);
+                }
+                KeyCode::T => {
+                    self.cycle_theme();
                 }
                 KeyCode::Equal | KeyCode::KpEqual => {
                     self.update_frame_cap += UPDATE_TIME_STEP;
@@ -174,8 +175,6 @@ impl GameOfLife {
                 self.resize_queued = true;
             }
         }
-        println!("{} FPS", get_fps());
-        println!("{}x{}", self.window_width, self.window_height);
 
         // get mouse position inside grid
         self.mouse_pos = Vec2::from(mouse_position()).floor().clamp(
@@ -185,6 +184,9 @@ impl GameOfLife {
                 self.window_height as f32 - 1.0,
             ),
         ) / SCALE as f32;
+
+        // store theme
+        let (bg, fg) = self.theme.to_style().into();
 
         match self.state {
             State::SimulationMode => {
@@ -211,7 +213,7 @@ impl GameOfLife {
             _ => {}
         }
 
-        clear_background(BLACK);
+        clear_background(bg);
 
         // if help mode
         if let State::HelpMode = self.state {
@@ -229,7 +231,7 @@ impl GameOfLife {
                 0.0,
                 spacing,
                 FONT_M,
-                WHITE,
+                fg,
             );
             spacing += FONT_M;
             draw_text(
@@ -237,7 +239,7 @@ impl GameOfLife {
                 0.0,
                 spacing,
                 FONT_M,
-                WHITE,
+                fg,
             );
             spacing += FONT_M;
             draw_text(
@@ -255,13 +257,13 @@ impl GameOfLife {
                 0.0,
                 spacing,
                 FONT_M,
-                WHITE,
+                fg,
             );
             spacing += FONT_M;
             draw_text(
                 "A                  - fill the board with live cells",
                 0.0, spacing,
-                FONT_M, WHITE
+                FONT_M, fg
             );
             spacing += FONT_M;
             draw_text(
@@ -272,7 +274,7 @@ impl GameOfLife {
                 0.0,
                 spacing,
                 FONT_M,
-                WHITE,
+                fg,
             );
             spacing += FONT_M;
             draw_text(
@@ -283,7 +285,7 @@ impl GameOfLife {
                 0.0,
                 spacing,
                 FONT_M,
-                WHITE,
+                fg,
             );
 
             draw_text(
@@ -291,7 +293,7 @@ impl GameOfLife {
                 0.0,
                 self.window_height as f32 - FONT_L,
                 FONT_L,
-                WHITE,
+                fg,
             );
             draw_text(
                 "Made by Kian (Kvoid)",
@@ -304,21 +306,41 @@ impl GameOfLife {
         }
 
         // draw the cells
-        for y in 0..self.universe.height {
-            for x in 0..self.universe.width {
-                draw_rectangle(
-                    (x * SCALE) as f32,
-                    (y * SCALE) as f32,
-                    SCALE as f32,
-                    SCALE as f32,
-                    if let Cell::Alive = self.universe.get(x, y) {
-                        WHITE
-                    } else {
-                        BLACK
-                    },
-                );
+        if let Theme::Midnight = self.theme {
+            for y in 0..self.universe.height {
+                for x in 0..self.universe.width {
+                    draw_rectangle(
+                        (x * SCALE) as f32,
+                        (y * SCALE) as f32,
+                        SCALE as f32,
+                        SCALE as f32,
+                        if let Cell::Alive = self.universe.get(x, y) {
+                            color_u8!(x, y, 10, 255)
+                        } else {
+                            bg
+                        },
+                    );
+                }
+            }
+        } else {
+            for y in 0..self.universe.height {
+                for x in 0..self.universe.width {
+                    draw_rectangle(
+                        (x * SCALE) as f32,
+                        (y * SCALE) as f32,
+                        SCALE as f32,
+                        SCALE as f32,
+                        if let Cell::Alive = self.universe.get(x, y) {
+                            fg
+                        } else {
+                            bg
+                        },
+                    );
+                }
             }
         }
+
+
 
         // draw mouse hover
         if let State::DesignMode = self.state {
@@ -338,6 +360,21 @@ impl GameOfLife {
                 self.window_height as f32 - 10.0,
                 30.0,
                 GREEN,
+            );
+
+            draw_text(
+                &format!("UPDATE: {:.2}s",
+                    self.update_frame_cap
+                ),
+                0.0, 20.0, 25.0,
+                GREEN
+            );
+            draw_text(
+                &format!("THEME: {:?}",
+                    self.theme    
+                ),
+                0.0, 40.0, 25.0,
+                GREEN
             );
         }
     }

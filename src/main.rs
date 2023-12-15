@@ -4,6 +4,7 @@ mod cell;
 mod gol;
 mod universe;
 mod consts;
+mod theme;
 
 use gol::GameOfLife;
 use macroquad::prelude::*;
