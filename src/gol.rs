@@ -1,17 +1,7 @@
 use crate::cell::Cell;
+use crate::consts::*;
 use crate::universe::Universe;
 use macroquad::{miniquad::window::set_window_size, prelude::*};
-
-const SCALE: usize = 15;
-
-pub const WINDOW_W: usize = 900;
-pub const WINDOW_H: usize = 750;
-
-pub const GRID_W: usize = WINDOW_W / SCALE;
-pub const GRID_H: usize = WINDOW_H / SCALE;
-
-const UPDATE_TIME_STEP: f32 = 0.05;
-const DEFAULT_UPDATE_CAP: f32 = 0.50;
 
 /*****************************************************************/
 
@@ -22,12 +12,24 @@ enum State {
     HelpMode,
 }
 
+impl State {
+    pub fn toggle(&mut self) {
+        *self = match self {
+            State::DesignMode => Self::SimulationMode,
+            State::SimulationMode => Self::DesignMode,
+            State::HelpMode => Self::HelpMode,
+        };
+    }
+}
+
 /// game struct
 pub struct GameOfLife {
     universe: Universe,
     state: State,
     update_frame_cap: f32,
     passed_time: f32,
+    passed_resize_time: f32,
+    resize_queued: bool,
     mouse_pos: Vec2,
     window_width: u32,
     window_height: u32,
@@ -37,58 +39,37 @@ impl GameOfLife {
     pub fn new() -> Self {
         Self {
             universe: Universe::new(GRID_W, GRID_H),
-            state: State::DesignMode,
+            state: State::HelpMode,
             update_frame_cap: DEFAULT_UPDATE_CAP,
             passed_time: 0.0,
+            passed_resize_time: 0.0,
+            resize_queued: false,
             mouse_pos: (0.0, 0.0).into(),
             window_width: 0,
             window_height: 0,
         }
     }
-    fn calculate_neighbours(&self, x: usize, y: usize) -> usize {
-        const NEIGHBOR_OFFSETS: [(i32, i32); 8] = [
-            (-1, -1),
-            (0, -1),
-            (1, -1),
-            (-1, 0),
-            (1, 0),
-            (-1, 1),
-            (0, 1),
-            (1, 1),
-        ];
-
-        let mut neighbours = 0;
-
-        for &(dx, dy) in &NEIGHBOR_OFFSETS {
-            let nx = x as i32 + dx;
-            let ny = y as i32 + dy;
-
-            if (nx >= 0 && nx < self.universe.width as i32)
-                && (ny >= 0 && ny < self.universe.height as i32)
-            {
-                if let Cell::Alive = self.universe.get(nx as usize, ny as usize) {
-                    neighbours += 1;
-                }
-            }
-        }
-        neighbours
+    pub fn update_screen_size(&mut self) {
+        self.window_width = screen_width() as u32;
+        self.window_height = screen_height() as u32;
     }
     fn enforce_minimun_screen_size(&mut self) {
-        if self.window_width < WINDOW_W as u32 || self.window_height < WINDOW_H as u32 {
-            let new_width = self.window_width.max(WINDOW_W as u32);
-            let new_height = self.window_height.max(WINDOW_H as u32);
+        const WIN_W_U32: u32 = WINDOW_W as u32;
+        const WIN_H_U32: u32 = WINDOW_H as u32;
 
-            set_window_size(new_width, new_height);
-            self.window_width = new_width;
-            self.window_height = new_height;
+        println!("{} < {WIN_W_U32} || {} < {WIN_H_U32}", self.window_width, self.window_height);
+        if self.window_width < WIN_W_U32 || self.window_height < WIN_H_U32 {
+            self.window_width = self.window_width.max(WIN_W_U32);
+            self.window_height = self.window_height.max(WIN_H_U32);
+
+            set_window_size(self.window_width, self.window_height); 
         }
     }
     fn screen_size_changed(&mut self) -> bool {
-        let new_width = screen_width().round() as u32;
-        let new_height = screen_height().round() as u32;
+        let new_width = screen_width().floor() as u32;
+        let new_height = screen_height().floor() as u32;
 
-        let changed = (self.window_width > 0 && self.window_height > 0)
-            && (new_width != self.window_width || new_height != self.window_height);
+        let changed = new_width != self.window_width || new_height != self.window_height;
 
         self.window_width = new_width;
         self.window_height = new_height;
@@ -106,7 +87,10 @@ impl GameOfLife {
                     }
                 }
                 KeyCode::C => {
-                    self.universe.clear();
+                    self.universe.fill(Cell::Dead);
+                }
+                KeyCode::A => {
+                    self.universe.fill(Cell::Alive);
                 }
                 KeyCode::Equal | KeyCode::KpEqual => {
                     self.update_frame_cap += UPDATE_TIME_STEP;
@@ -116,11 +100,7 @@ impl GameOfLife {
                         (self.update_frame_cap - UPDATE_TIME_STEP).clamp(0.0, f32::MAX);
                 }
                 KeyCode::Space => {
-                    self.state = match self.state {
-                        State::DesignMode => State::SimulationMode,
-                        State::SimulationMode => State::DesignMode,
-                        State::HelpMode => State::HelpMode,
-                    };
+                    self.state.toggle();
                 }
                 KeyCode::Escape => {
                     if let State::HelpMode = self.state {
@@ -137,8 +117,30 @@ impl GameOfLife {
 
         for y in 0..self.universe.height {
             for x in 0..self.universe.width {
-                let neighbours = self.calculate_neighbours(x, y);
-                let new_state = self.universe.get(x, y).calculate_next_iteration(neighbours);
+                let cell_state = self.universe.get(x, y);
+                let mut neighbours = 0;
+
+                for dx in -1..=1 {
+                    for dy in -1..=1 {
+                        if dx == 0 && dy == 0 {
+                            continue;
+                        }
+
+                        let nx = x as i32 + dx;
+                        let ny = y as i32 + dy;
+
+                        if nx >= 0
+                            && nx < self.universe.width as i32
+                            && ny >= 0
+                            && ny < self.universe.height as i32
+                            && matches!(self.universe.get(nx as usize, ny as usize), Cell::Alive)
+                        {
+                            neighbours += 1;
+                        }
+                    }
+                }
+
+                let new_state = cell_state.calculate_next_iteration(neighbours);
                 next_generation.set(x, y, new_state);
             }
         }
@@ -150,14 +152,30 @@ impl GameOfLife {
         if self.passed_time >= self.update_frame_cap {
             self.passed_time = 0.0;
         }
-        self.passed_time += get_frame_time();
+        let dt = get_frame_time();
+        self.passed_time += dt;
+        self.passed_resize_time += dt;
 
         self.handle_keys();
 
-        if self.screen_size_changed() {
-            self.enforce_minimun_screen_size();
-            self.universe.resize(self.window_width as usize, self.window_height as usize);
+        let size_changed = self.screen_size_changed();
+        if size_changed || self.resize_queued {
+            if size_changed {
+                //  self.enforce_minimun_screen_size();
+            }
+            if self.passed_resize_time >= RESIZE_TIME_LIMIT {
+                let new_w = self.window_width / SCALE_U32;
+                let new_h = self.window_height / SCALE_U32;
+
+                self.universe.resize(new_w as usize, new_h as usize);
+                self.resize_queued = false;
+                self.passed_resize_time = 0.0;
+            } else {
+                self.resize_queued = true;
+            }
         }
+        println!("{} FPS", get_fps());
+        println!("{}x{}", self.window_width, self.window_height);
 
         // get mouse position inside grid
         self.mouse_pos = Vec2::from(mouse_position()).floor().clamp(
@@ -202,54 +220,68 @@ impl GameOfLife {
             const FONT_L: f32 = 35.0;
             const FONT_XL: f32 = 60.0;
 
-            draw_text("CONTROLS", 0.0, 34.0, FONT_XL, GREEN);
+            let mut spacing = FONT_L;
 
+            draw_text("CONTROLS", 0.0, spacing, FONT_XL, GREEN);
+            spacing += FONT_L;
             draw_text(
                 "Left mouse button  - make cell alive",
                 0.0,
-                70.0,
+                spacing,
                 FONT_M,
                 WHITE,
             );
+            spacing += FONT_M;
             draw_text(
                 "Right mouse button - make cell dead",
                 0.0,
-                100.0,
+                spacing,
                 FONT_M,
                 WHITE,
             );
+            spacing += FONT_M;
             draw_text(
                 "Space              - pause/unpause game",
                 0.0,
-                130.0,
+                spacing,
                 FONT_M,
                 WHITE,
             );
-            draw_text("H                  - help menu", 0.0, 160.0, FONT_M, WHITE);
+            spacing += FONT_M;
+            draw_text("H                  - help menu", 0.0, spacing, FONT_M, WHITE);
+            spacing += FONT_M;
             draw_text(
                 "C                  - clear the board",
                 0.0,
-                190.0,
+                spacing,
                 FONT_M,
                 WHITE,
             );
+            spacing += FONT_M;
+            draw_text(
+                "A                  - fill the board with live cells",
+                0.0, spacing,
+                FONT_M, WHITE
+            );
+            spacing += FONT_M;
             draw_text(
                 &format!(
                     "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
                     self.update_frame_cap
                 ),
                 0.0,
-                220.0,
+                spacing,
                 FONT_M,
                 WHITE,
             );
+            spacing += FONT_M;
             draw_text(
                 &format!(
                     "-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
                     self.update_frame_cap
                 ),
                 0.0,
-                250.0,
+                spacing,
                 FONT_M,
                 WHITE,
             );

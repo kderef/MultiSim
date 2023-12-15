@@ -1,11 +1,13 @@
-// #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
 mod cell;
 mod gol;
 mod universe;
+mod consts;
 
-use gol::{GameOfLife, WINDOW_H, WINDOW_W};
+use gol::GameOfLife;
 use macroquad::prelude::*;
+use consts::{WINDOW_W, WINDOW_H};
 
 fn window_conf() -> Conf {
     Conf {
@@ -25,6 +27,7 @@ fn window_conf() -> Conf {
 async fn main() {
     // instantiate game
     let mut gol = GameOfLife::new();
+    gol.update_screen_size();
 
     loop {
         gol.run();
