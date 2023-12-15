@@ -27,6 +27,7 @@ pub struct GameOfLife {
     // game state
     universe: Universe,
     state: State,
+    fullscreen: bool,
     // delta time
     update_frame_cap: f32,
     passed_time: f32,
@@ -45,6 +46,7 @@ impl GameOfLife {
         Self {
             universe: Universe::new(GRID_W, GRID_H),
             state: State::HelpMode,
+            fullscreen: true,
             update_frame_cap: DEFAULT_UPDATE_CAP,
             passed_time: 0.0,
             passed_resize_time: 0.0,
@@ -186,7 +188,7 @@ impl GameOfLife {
         ) / SCALE as f32;
 
         // store theme
-        let (bg, fg) = self.theme.to_style().into();
+        let (bg, fg, accent) = self.theme.to_style().into();
 
         match self.state {
             State::SimulationMode => {
@@ -224,7 +226,7 @@ impl GameOfLife {
 
             let mut spacing = FONT_L;
 
-            draw_text("CONTROLS", 0.0, spacing, FONT_XL, GREEN);
+            draw_text("CONTROLS", 0.0, spacing, FONT_XL, accent);
             spacing += FONT_L;
             draw_text(
                 "Left mouse button  - make cell alive",
@@ -247,10 +249,10 @@ impl GameOfLife {
                 0.0,
                 spacing,
                 FONT_M,
-                WHITE,
+                fg,
             );
             spacing += FONT_M;
-            draw_text("H                  - help menu", 0.0, spacing, FONT_M, WHITE);
+            draw_text("H                  - help menu", 0.0, spacing, FONT_M, fg);
             spacing += FONT_M;
             draw_text(
                 "C                  - clear the board",
@@ -262,6 +264,12 @@ impl GameOfLife {
             spacing += FONT_M;
             draw_text(
                 "A                  - fill the board with live cells",
+                0.0, spacing,
+                FONT_M, fg
+            );
+            spacing += FONT_M;
+            draw_text(
+                &format!("T                  - switch themes (currently: {:?})", self.theme),
                 0.0, spacing,
                 FONT_M, fg
             );
@@ -300,7 +308,7 @@ impl GameOfLife {
                 self.window_width as f32 - 190.0,
                 self.window_height as f32 - FONT_S,
                 FONT_S,
-                GRAY,
+                accent,
             );
             return;
         }
@@ -315,7 +323,7 @@ impl GameOfLife {
                         SCALE as f32,
                         SCALE as f32,
                         if let Cell::Alive = self.universe.get(x, y) {
-                            color_u8!(x, y, 10, 255)
+                            color_u8!(x, y, 100, 255)
                         } else {
                             bg
                         },
@@ -351,7 +359,7 @@ impl GameOfLife {
                 dim,
                 dim,
                 2.0,
-                GREEN,
+                accent,
             );
 
             draw_text(
@@ -359,7 +367,7 @@ impl GameOfLife {
                 0.0,
                 self.window_height as f32 - 10.0,
                 30.0,
-                GREEN,
+                accent,
             );
 
             draw_text(
@@ -367,14 +375,14 @@ impl GameOfLife {
                     self.update_frame_cap
                 ),
                 0.0, 20.0, 25.0,
-                GREEN
+                accent
             );
             draw_text(
                 &format!("THEME: {:?}",
                     self.theme    
                 ),
                 0.0, 40.0, 25.0,
-                GREEN
+                accent
             );
         }
     }

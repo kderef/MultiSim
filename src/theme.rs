@@ -1,15 +1,15 @@
 use std::{iter::Cycle, slice::Iter};
 
 use macroquad::{
-    color::{BLACK, WHITE, GREEN},
+    color::{BLACK, WHITE, GREEN, BLUE},
     prelude::Color,
 };
 
 #[derive(Debug)]
 pub struct Style {
-    pub bg: Color,
-    pub fg: Color,
-    pub accent: Color,
+    bg: Color,
+    fg: Color,
+    accent: Color,
 }
 impl Style {
     pub fn default() -> Self {
@@ -20,9 +20,9 @@ impl Style {
         }
     }
 }
-impl Into<(Color, Color)> for Style {
-    fn into(self) -> (Color, Color) {
-        (self.bg, self.fg)
+impl Into<(Color, Color, Color)> for Style {
+    fn into(self) -> (Color, Color, Color) {
+        (self.bg, self.fg, self.accent)
     }
 }
 
@@ -38,15 +38,17 @@ impl Theme {
             Self::Gruvbox => Style {
                 bg: Color::from_hex(0x282828),
                 fg: Color::from_hex(0xebdbb2),
-                accent: Color::from_hex(hex)
+                accent: Color::from_hex(0xcc241d)
             },
             Self::Matrix => Style {
                 bg: Color::from_hex(0x131721),
-                fg: Color::from_hex(0x32c603)
+                fg: Color::from_hex(0x32c603),
+                accent: BLUE,
             },
             Self::Midnight => Style {
                 bg: Color::from_hex(0x0D1017),
-                fg: WHITE
+                fg: WHITE,
+                accent: Color::from_hex(0xd65d0e)
             }
         }
     }

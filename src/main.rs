@@ -7,7 +7,7 @@ mod consts;
 mod theme;
 
 use gol::GameOfLife;
-use macroquad::prelude::*;
+use macroquad::{prelude::*, miniquad::conf::Icon};
 use consts::{WINDOW_W, WINDOW_H};
 
 fn window_conf() -> Conf {
@@ -19,7 +19,7 @@ fn window_conf() -> Conf {
         fullscreen: false,
         window_resizable: true,
         sample_count: Default::default(),
-        icon: None,
+        icon: Some(Icon::miniquad_logo()),
         platform: Default::default()
     }
 }
