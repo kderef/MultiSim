@@ -1,7 +1,7 @@
 use crate::cell::Cell;
 use crate::consts::*;
-use crate::universe::Universe;
 use crate::theme::Theme;
+use crate::universe::Universe;
 use macroquad::prelude::*;
 /*****************************************************************/
 
@@ -54,7 +54,6 @@ impl GameOfLife {
             window_height: 0,
             theme: Theme::Default,
         }
-
     }
     pub fn update_screen_size(&mut self) {
         self.window_width = screen_width() as u32;
@@ -230,88 +229,36 @@ impl GameOfLife {
 
             let mut spacing = FONT_L;
 
-            draw_text("CONTROLS", 0.0, spacing, FONT_XL, accent);
-            spacing += FONT_L;
-            draw_text(
+            let controls = [
                 "Left mouse button  - make cell alive",
-                0.0,
-                spacing,
-                FONT_M,
-                fg,
-            );
-            spacing += FONT_M;
-            draw_text(
                 "Right mouse button - make cell dead",
-                0.0,
-                spacing,
-                FONT_M,
-                fg,
-            );
-            spacing += FONT_M;
-            draw_text(
                 "Space              - pause/unpause game",
-                0.0,
-                spacing,
-                FONT_M,
-                fg,
-            );
-            spacing += FONT_M;
-            draw_text("H                  - help menu", 0.0, spacing, FONT_M, fg);
-            spacing += FONT_M;
-            draw_text(
+                "H                  - help menu",
                 "C                  - clear the board",
-                0.0,
-                spacing,
-                FONT_M,
-                fg,
-            );
-            spacing += FONT_M;
-            draw_text(
                 "A                  - fill the board with live cells",
-                0.0, spacing,
-                FONT_M, fg
-            );
-            spacing += FONT_M;
-            draw_text(
                 "I                  - invert cells",
-                0.0, spacing,
-                FONT_M, fg
-            );
-            spacing += FONT_M;
-            draw_text(
                 "R                  - generate a random pattern",
-                0.0, spacing,
-                FONT_M, fg
-            );
-            spacing += FONT_M;
-            draw_text(
-                &format!("T                  - switch themes (currently: {:?})", self.theme),
-                0.0, spacing,
-                FONT_M, fg
-            );
-            spacing += FONT_M;
-            draw_text(
+                &format!(
+                    "T                  - switch themes (currently: {:?})",
+                    self.theme
+                ),
                 &format!(
                     "+                  - add {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
                     self.update_frame_cap
                 ),
-                0.0,
-                spacing,
-                FONT_M,
-                fg,
-            );
-            spacing += FONT_M;
-            draw_text(
                 &format!(
                     "-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
                     self.update_frame_cap
                 ),
-                0.0,
-                spacing,
-                FONT_M,
-                fg,
-            );
+            ];
 
+            draw_text("CONTROLS", 0.0, spacing, FONT_XL, accent);
+            spacing += FONT_L;
+
+            for control in controls {
+                draw_text(control, 0.0, spacing, FONT_M, fg);
+                spacing += FONT_M;
+            }
 
             draw_text(
                 "Press ESC or H to return",
@@ -367,8 +314,6 @@ impl GameOfLife {
             }
         }
 
-
-
         // draw mouse hover
         if let State::DesignMode = self.state {
             draw_rectangle_lines(
@@ -389,19 +334,13 @@ impl GameOfLife {
             );
 
             draw_text(
-                &format!("UPDATE: {:.2}s",
-                    self.update_frame_cap
-                ),
-                0.0, 25.0, 30.0,
-                accent
+                &format!("UPDATE: {:.2}s", self.update_frame_cap),
+                0.0,
+                25.0,
+                30.0,
+                accent,
             );
-            draw_text(
-                &format!("THEME: {:?}",
-                    self.theme    
-                ),
-                0.0, 50.0, 30.0,
-                accent
-            );
+            draw_text(&format!("THEME: {:?}", self.theme), 0.0, 50.0, 30.0, accent);
         }
     }
 }
