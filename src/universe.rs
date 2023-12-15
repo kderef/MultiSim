@@ -70,10 +70,6 @@ impl Universe {
 
         // Limit the grid size to the maximum defined values
         let mut new_cells = vec![Cell::Dead; new_width * new_height];
-        println!(
-            "old: {}x{} new: {}x{}",
-            self.width, self.height, new_width, new_height
-        );
 
         // Copy existing cells to new_cells, adjusting for the size difference
         for y in 0..self.height.min(new_height) {

@@ -331,14 +331,16 @@ impl GameOfLife {
         }
 
         // draw the cells
+        const SCALE_F: f32 = SCALE as f32;
+
         if let Theme::Midnight = self.theme {
             for y in 0..self.universe.height {
                 for x in 0..self.universe.width {
                     draw_rectangle(
                         (x * SCALE) as f32,
                         (y * SCALE) as f32,
-                        SCALE as f32,
-                        SCALE as f32,
+                        SCALE_F,
+                        SCALE_F,
                         if let Cell::Alive = self.universe.get(x, y) {
                             color_u8!(x, y, 100, 255)
                         } else {
@@ -353,8 +355,8 @@ impl GameOfLife {
                     draw_rectangle(
                         (x * SCALE) as f32,
                         (y * SCALE) as f32,
-                        SCALE as f32,
-                        SCALE as f32,
+                        SCALE_F,
+                        SCALE_F,
                         if let Cell::Alive = self.universe.get(x, y) {
                             fg
                         } else {
@@ -369,12 +371,11 @@ impl GameOfLife {
 
         // draw mouse hover
         if let State::DesignMode = self.state {
-            let dim = SCALE as f32;
             draw_rectangle_lines(
-                self.mouse_pos.x.floor() * dim,
-                self.mouse_pos.y.floor() * dim,
-                dim,
-                dim,
+                self.mouse_pos.x.floor() * SCALE_F,
+                self.mouse_pos.y.floor() * SCALE_F,
+                SCALE_F,
+                SCALE_F,
                 2.0,
                 accent,
             );
