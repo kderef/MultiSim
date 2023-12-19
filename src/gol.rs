@@ -56,7 +56,7 @@ impl GameOfLife {
             window_width: 0,
             window_height: 0,
             theme: Theme::Default,
-            bolus: Texture2D::from_file_with_format(BOLUS, Some(ImageFormat::Png)),
+            bolus: Texture2D::from_file_with_format(BOLUS, None),
             fullscreen: false,
         }
     }
@@ -261,6 +261,7 @@ impl GameOfLife {
                     "-                  - subtract {UPDATE_TIME_STEP:.2}s to update time ({:.2}s)",
                     self.update_frame_cap
                 ),
+                &format!("F11                - toggle fullscreen (now: {})", self.fullscreen),
             ];
 
             draw_text("CONTROLS", 0.0, spacing, FONT_XL, accent);

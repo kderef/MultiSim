@@ -2,7 +2,7 @@
 name = "game-of-life"
 description = "A Game of Life simulator"
 authors = ["Kian Heitkamp"]
-version = "1.0.9"
+version = "1.1.0"
 edition = "2021"
 build = "build.rs"
 
