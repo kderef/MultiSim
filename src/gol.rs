@@ -34,10 +34,13 @@ pub struct GameOfLife {
     resize_queued: bool,
     // meta information
     mouse_pos: Vec2,
+    fullscreen: bool,
     window_width: u32,
     window_height: u32,
     // themes
     theme: Theme,
+    // secret!
+    bolus: Texture2D,
 }
 
 impl GameOfLife {
@@ -53,6 +56,8 @@ impl GameOfLife {
             window_width: 0,
             window_height: 0,
             theme: Theme::Default,
+            bolus: Texture2D::from_file_with_format(BOLUS, Some(ImageFormat::Png)),
+            fullscreen: false,
         }
     }
     pub fn update_screen_size(&mut self) {
@@ -98,6 +103,9 @@ impl GameOfLife {
                 KeyCode::R => {
                     self.universe.fill_random();
                 }
+                KeyCode::B => {
+                    self.theme.toggle_bolus();
+                }
                 KeyCode::Equal | KeyCode::KpEqual => {
                     self.update_frame_cap += UPDATE_TIME_STEP;
                 }
@@ -113,7 +121,10 @@ impl GameOfLife {
                         self.state = State::DesignMode;
                     }
                 }
-
+                KeyCode::F11 => {
+                    self.fullscreen = !self.fullscreen;
+                    set_fullscreen(self.fullscreen);
+                }
                 _ => {}
             }
         }
@@ -280,36 +291,61 @@ impl GameOfLife {
         // draw the cells
         const SCALE_F: f32 = SCALE as f32;
 
-        if let Theme::Midnight = self.theme {
-            for y in 0..self.universe.height {
-                for x in 0..self.universe.width {
-                    draw_rectangle(
-                        (x * SCALE) as f32,
-                        (y * SCALE) as f32,
-                        SCALE_F,
-                        SCALE_F,
-                        if let Cell::Alive = self.universe.get(x, y) {
-                            color_u8!(x, y, 100, 255)
-                        } else {
-                            bg
-                        },
-                    );
+        match self.theme {
+            Theme::Midnight => {
+                for y in 0..self.universe.height {
+                    for x in 0..self.universe.width {
+                        draw_rectangle(
+                            (x * SCALE) as f32,
+                            (y * SCALE) as f32,
+                            SCALE_F,
+                            SCALE_F,
+                            if let Cell::Alive = self.universe.get(x, y) {
+                                color_u8!(x, y, 100, 255)
+                            } else {
+                                bg
+                            },
+                        );
+                    }
                 }
             }
-        } else {
-            for y in 0..self.universe.height {
-                for x in 0..self.universe.width {
-                    draw_rectangle(
-                        (x * SCALE) as f32,
-                        (y * SCALE) as f32,
-                        SCALE_F,
-                        SCALE_F,
+            Theme::Bolus => {
+                for y in 0..self.universe.height {
+                    for x in 0..self.universe.width {
                         if let Cell::Alive = self.universe.get(x, y) {
-                            fg
+                            draw_texture_ex(
+                                &self.bolus,
+                                (x * SCALE) as f32,
+                                (y * SCALE) as f32,
+                                WHITE, BOLUS_PARAMS
+                            )
                         } else {
-                            bg
-                        },
-                    );
+                            draw_rectangle(
+                                (x * SCALE) as f32,
+                                (y * SCALE) as f32,
+                                SCALE_F,
+                                SCALE_F,
+                                BLACK
+                            );
+                        }
+                    }
+                }
+            },
+            _ => {
+                for y in 0..self.universe.height {
+                    for x in 0..self.universe.width {
+                        draw_rectangle(
+                            (x * SCALE) as f32,
+                            (y * SCALE) as f32,
+                            SCALE_F,
+                            SCALE_F,
+                            if let Cell::Alive = self.universe.get(x, y) {
+                                fg
+                            } else {
+                                bg
+                            },
+                        );
+                    }
                 }
             }
         }
@@ -340,7 +376,16 @@ impl GameOfLife {
                 30.0,
                 accent,
             );
-            draw_text(&format!("THEME: {:?}", self.theme), 0.0, 50.0, 30.0, accent);
+            if let Theme::Bolus = self.theme {
+                draw_text("THEME: Bolus mode!!! (cred Fernando)", 0.0, 50.0, 30.0, accent);
+            } else {
+                draw_text(&format!("THEME: {:?}", self.theme), 0.0, 50.0, 30.0, accent);
+            }
+            
         }
+    }
+
+    fn draw_cells(&mut self, color: Color) {
+
     }
 }

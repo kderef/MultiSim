@@ -33,6 +33,7 @@ pub enum Theme {
     Gruvbox,
     Matrix,
     Midnight,
+    Bolus
 }
 
 macro_rules! hex_color {
@@ -57,6 +58,7 @@ impl Theme {
             Self::Gruvbox => GRUVBOX,
             Self::Matrix => MATRIX,
             Self::Midnight => MIDNIGHT,
+            Self::Bolus => Style::default(),
         }
     }
     pub fn cycle(&mut self) {
@@ -65,6 +67,13 @@ impl Theme {
             Self::Gruvbox => Self::Matrix,
             Self::Matrix => Self::Midnight,
             Self::Midnight => Self::Default,
+            Self::Bolus => Self::Default,
+        };
+    }
+    pub fn toggle_bolus(&mut self) {
+        *self = match *self {
+            Self::Bolus => Self::Default,
+            _ => Self::Bolus
         };
     }
 }
