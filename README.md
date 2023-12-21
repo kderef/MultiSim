@@ -1,4 +1,4 @@
-# MultiSim.rs
+# MultiSim.rs.
 **A rust simulation program that simulates things like Game of Life and more.**
 ---
 # Game of Life
