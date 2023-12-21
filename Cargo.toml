@@ -1,19 +1,17 @@
 [package]
-name = "game-of-life"
-description = "A Game of Life simulator"
+name = "MultiSim-rs"
+description = "A simulation game"
 authors = ["Kian Heitkamp"]
-version = "1.1.0"
+version = "2.0.0"
 edition = "2021"
 build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [package.metadata.winres]
-OriginalFilename = "game-of-life.exe"
-ProductName = "GOL sim by Kian Heitkamp"
-FileDescription = "Game of Life simulator"
-FileVersion = "1.0.8"
-
+OriginalFilename = "MultiSim-rs.exe"
+ProductName = "Simulator game by Kian Heitkamp"
+FileDescription = "Simulator game"
 
 [profile.release]
 strip = true

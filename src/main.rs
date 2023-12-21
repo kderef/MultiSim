@@ -1,15 +1,29 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![allow(non_snake_case)]
+#![cfg_attr(all(target_os = "windows", not(debug_assertions)), windows_subsystem = "windows")]
 
+// game trait
+mod game;
+use game::Game;
+
+// Selector for the games
+mod selector;
+
+// Game of Life
 mod gol_cell;
 mod gol_consts;
 mod gol_game;
 mod gol_theme;
 mod gol_universe;
 
-use std::time::{UNIX_EPOCH, SystemTime};
+// DVD bouncing
+mod dvd;
 
 use gol_consts::{WINDOW_H, WINDOW_W};
 use gol_game::GameOfLife;
+use selector::{Selector, SelectedGame};
+use dvd::Dvd;
+
+use std::time::{UNIX_EPOCH, SystemTime};
 use macroquad::{miniquad::conf::Icon, prelude::*};
 
 fn window_conf() -> Conf {
@@ -36,12 +50,20 @@ async fn main() {
             .unwrap_or(69),
     );
 
-    // instantiate game
+    // instantiate games
+    let mut selector = Selector::new();
+    let mut current_game = selector::SelectedGame::None;
+
     let mut gol = GameOfLife::new();
-    gol.update_screen_size();
+    let mut dvd = Dvd::new();
 
     loop {
-        gol.run();
+        current_game = match current_game {
+            SelectedGame::Dvd => dvd.update(),
+            SelectedGame::GameOfLife => gol.update(),
+            SelectedGame::None => selector.update()
+        };
+
         next_frame().await;
     }
 }
