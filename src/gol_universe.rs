@@ -1,7 +1,8 @@
 use crate::{
-    cell::{Cell, Cells},
-    consts::SCALE,
+    gol_cell::{Cell, Cells},
+    gol_consts::SCALE,
 };
+use std::iter;
 
 #[derive(Clone)]
 pub struct Universe {
@@ -34,30 +35,16 @@ impl Universe {
         self.cells[i] = val;
     }
     pub fn invert(&mut self) {
-        self.cells = self
-            .cells
-            .iter()
-            .map(|c| {
-                if let Cell::Alive = c {
-                    Cell::Dead
-                } else {
-                    Cell::Alive
-                }
-            })
-            .collect();
+        self.cells = self.cells.iter().map(Cell::flip).collect();
     }
     pub fn fill_random(&mut self) {
         self.cells.fill(Cell::Dead);
-        self.cells = std::iter::repeat_with(|| {
-                let n = macroquad::rand::rand();
-                if n % 2 == 0 || n % 7 == 0 {
-                    Cell::Alive
-                } else {
-                    Cell::Dead
-                }
-            })
-            .take(self.width * self.height)
-            .collect();
+        self.cells = iter::repeat_with(|| {
+            let n = macroquad::rand::rand();
+            (n % 2 == 0 || n % 7 == 0).into()
+        })
+        .take(self.width * self.height)
+        .collect();
     }
     pub fn resize(&mut self, new_width: usize, new_height: usize) {
         if new_width <= self.width && new_height <= self.height {

@@ -1,7 +1,7 @@
-use crate::cell::Cell;
-use crate::consts::*;
-use crate::theme::Theme;
-use crate::universe::Universe;
+use crate::gol_cell::Cell;
+use crate::gol_consts::*;
+use crate::gol_theme::Theme;
+use crate::gol_universe::Universe;
 use macroquad::prelude::*;
 /*****************************************************************/
 
@@ -64,9 +64,6 @@ impl GameOfLife {
         self.window_width = screen_width() as u32;
         self.window_height = screen_height() as u32;
     }
-    fn cycle_theme(&mut self) {
-        self.theme.cycle();
-    }
     fn screen_size_changed(&mut self) -> bool {
         let new_width = screen_width().floor() as u32;
         let new_height = screen_height().floor() as u32;
@@ -95,7 +92,7 @@ impl GameOfLife {
                     self.universe.fill(Cell::Alive);
                 }
                 KeyCode::T => {
-                    self.cycle_theme();
+                    self.theme.cycle();
                 }
                 KeyCode::I => {
                     self.universe.invert();

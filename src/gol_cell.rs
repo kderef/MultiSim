@@ -22,4 +22,18 @@ impl Cell {
             }
         }
     }
+    #[inline(always)]
+    pub fn flip(&self) -> Self {
+        if let Self::Alive = self {
+            Self::Dead
+        } else {
+            Self::Alive
+        }
+    }
+}
+
+impl From<bool> for Cell {
+    fn from(value: bool) -> Self {
+        if value { Self::Alive } else {Self::Dead}
+    }
 }
