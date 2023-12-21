@@ -1,6 +1,7 @@
 # MultiSim.rs.
 
 **A rust simulation program that simulates things like Game of Life and more.**
+
 ---
 # Game of Life
 **A rust implementation of Conways Game of Life**.
