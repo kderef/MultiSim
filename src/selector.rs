@@ -6,6 +6,7 @@ use macroquad::{
 pub enum SelectedGame {
     None,
     GameOfLife,
+    Pong,
     Dvd,
 }
 
@@ -57,6 +58,9 @@ impl crate::game::Game for Selector {
         }
         if root_ui().button(Vec2::new(button_x, button_y + 50.0), " DvD bouncin sim ") {
             sel = SelectedGame::Dvd;
+        }
+        if root_ui().button(Vec2::new(button_x, button_y + 100.0), "       Pong      ") {
+            sel = SelectedGame::Pong;
         }
         root_ui().label(
             Vec2::new(0.0, self.window_size.y - 20.0),

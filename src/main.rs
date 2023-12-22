@@ -8,6 +8,9 @@ use game::Game;
 // Selector for the games
 mod selector;
 
+// Pong
+mod pong;
+
 // Game of Life
 mod gol_cell;
 mod gol_consts;
@@ -22,9 +25,10 @@ use gol_consts::{WINDOW_H, WINDOW_W};
 use gol_game::GameOfLife;
 use selector::{Selector, SelectedGame};
 use dvd::Dvd;
+use pong::Pong;
 
 use std::time::{UNIX_EPOCH, SystemTime};
-use macroquad::{miniquad::conf::Icon, prelude::*};
+use macroquad::{miniquad::conf::Icon, prelude::*, audio::load_sound_from_bytes};
 
 fn window_conf() -> Conf {
     Conf {
@@ -56,12 +60,21 @@ async fn main() {
 
     let mut gol = GameOfLife::new();
     let mut dvd = Dvd::new();
+    let mut pong = Pong::new();
+
+    // FUCK the person who made this function async!
+    pong.sound = Some(
+        load_sound_from_bytes(
+            include_bytes!("../assets/beep.wav")
+        ).await.unwrap()
+    );
 
     loop {
         current_game = match current_game {
             SelectedGame::Dvd => dvd.update(),
             SelectedGame::GameOfLife => gol.update(),
-            SelectedGame::None => selector.update()
+            SelectedGame::None => selector.update(),
+            SelectedGame::Pong => pong.update(),
         };
 
         next_frame().await;

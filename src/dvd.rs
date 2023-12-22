@@ -1,6 +1,6 @@
-use macroquad::{prelude::*, miniquad::window::set_window_size};
+use macroquad::prelude::*;
 
-use crate::selector;
+use crate::selector::SelectedGame;
 
 const DVD_LOGO_BYTES: &[u8] = include_bytes!("../assets/DVD_logo.png");
 
@@ -18,14 +18,11 @@ impl crate::game::Game for Dvd {
         let logo = Texture2D::from_file_with_format(DVD_LOGO_BYTES, Some(ImageFormat::Png));
         let logo_size = logo.size();
 
-        let rand_x = macroquad::rand::rand() % (window_size.x as u32 - logo_size.x as u32);
-        let rand_y = macroquad::rand::rand() % (window_size.y as u32 - logo_size.y as u32);
-        
+        let rand_x = rand::gen_range(0.0, window_size.x - logo_size.x);
+        let rand_y = rand::gen_range(0.0, window_size.y - logo_size.y);
 
         Self {
-            pos: Vec2::new(
-                rand_x as f32, rand_y as f32
-            ),
+            pos: Vec2::new(rand_x, rand_y),
             velocity: vec2(1.0, 1.0),
             window_size,
             logo_size,
@@ -33,17 +30,23 @@ impl crate::game::Game for Dvd {
         }
     }
 
-    fn update(&mut self) -> selector::SelectedGame {
-        let sel = if is_key_pressed(KeyCode::Escape) {
-            selector::SelectedGame::None
+    fn update(&mut self) -> SelectedGame {
+        let next = if let Some(key) = get_last_key_pressed() {
+            match key {
+                KeyCode::Escape => SelectedGame::None,
+                _ => SelectedGame::Dvd,
+            }
         } else {
-            selector::SelectedGame::Dvd
+            SelectedGame::Dvd
         };
 
         self.window_size.x = screen_width();
         self.window_size.y = screen_height();
 
-        self.pos = self.pos.clamp(vec2(0., 0.), self.window_size - self.logo_size) + self.velocity;
+        self.pos = self
+            .pos
+            .clamp(vec2(0., 0.), self.window_size - self.logo_size)
+            + self.velocity;
 
         if self.pos.x + self.logo_size.x >= self.window_size.x || self.pos.x <= 0.0 {
             self.velocity.x *= -1.0;
@@ -53,8 +56,13 @@ impl crate::game::Game for Dvd {
         }
 
         clear_background(WHITE);
-        draw_texture(&self.logo, self.pos.x, self.pos.y, BLACK);
+        draw_texture(
+            &self.logo,
+            self.pos.x,
+            self.pos.y,
+            WHITE
+        );
 
-        sel
+        next
     }
 }
