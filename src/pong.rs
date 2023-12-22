@@ -1,13 +1,13 @@
 use crate::selector::SelectedGame;
 use macroquad::{prelude::*, audio::{Sound, play_sound, PlaySoundParams}};
 
-const PADDLE_WIDTH: f32 = 250.0;
+const PADDLE_WIDTH: f32 = 200.0;
 const PADDLE_HEIGHT: f32 = 10.0;
 const PADDLE_PADDING: f32 = 20.0;
-const PADDLE_SPEED: f32 = 1.5;
+const PADDLE_SPEED: f32 = 180.0;
 
-const BALL_SPEED: f32 = 1.4;
 const BALL_RADIUS: f32 = 5.0;
+const DEFAULT_VELOCITY: Vec2 = vec2(200.0, 200.0);
 
 struct Ball {
     velocity: Vec2,
@@ -38,7 +38,7 @@ impl Pong {
                 self.paddle_bottom.x - PADDLE_PADDING
             },
         );
-        self.ball.velocity = vec2(1.0, 1.0);
+        self.ball.velocity = DEFAULT_VELOCITY;
 
         self.countdown_passed = Some(0.0);
     }
@@ -91,7 +91,7 @@ impl crate::game::Game for Pong {
 
         Self {
             ball: Ball {
-                velocity: vec2(BALL_SPEED, BALL_SPEED),
+                velocity: DEFAULT_VELOCITY,
                 pos: win_size / 2.0,
             },
             score: (0, 0),
@@ -107,6 +107,8 @@ impl crate::game::Game for Pong {
         self.paddle_bottom.y = self.window_size.y - PADDLE_HEIGHT - PADDLE_PADDING;
         self.paddle_top.y = PADDLE_PADDING;
 
+        let dt = get_frame_time();
+
         if is_key_pressed(KeyCode::Escape) {
             return SelectedGame::None;
         }
@@ -118,20 +120,21 @@ impl crate::game::Game for Pong {
                 *cp += get_frame_time();
             }
         } else {
+            let fixed_paddle_speed = PADDLE_SPEED * dt;
             if is_key_down(KeyCode::A) {
-                self.paddle_bottom.x = (self.paddle_bottom.x - PADDLE_SPEED)
+                self.paddle_bottom.x = (self.paddle_bottom.x - fixed_paddle_speed)
                     .clamp(0.0, self.window_size.x - PADDLE_WIDTH);
             }
             if is_key_down(KeyCode::D) {
-                self.paddle_bottom.x = (self.paddle_bottom.x + PADDLE_SPEED)
+                self.paddle_bottom.x = (self.paddle_bottom.x + fixed_paddle_speed)
                     .clamp(0.0, self.window_size.x - PADDLE_WIDTH);
             }
             if is_key_down(KeyCode::Left) {
-                self.paddle_top.x = (self.paddle_top.x - PADDLE_SPEED)
+                self.paddle_top.x = (self.paddle_top.x - fixed_paddle_speed)
                     .clamp(0.0, self.window_size.x - PADDLE_WIDTH);
             }
             if is_key_down(KeyCode::Right) {
-                self.paddle_top.x = (self.paddle_top.x + PADDLE_SPEED)
+                self.paddle_top.x = (self.paddle_top.x + fixed_paddle_speed)
                     .clamp(0.0, self.window_size.x - PADDLE_WIDTH);
             }
         }
@@ -140,7 +143,7 @@ impl crate::game::Game for Pong {
             None => {
                 const AUDIO_PARAMS: PlaySoundParams = PlaySoundParams {looped: false, volume: 0.3};
 
-                self.ball.pos += self.ball.velocity;
+                self.ball.pos += self.ball.velocity * dt;
 
                 // bounding box
                 let ball_box = self.ball.pos + BALL_RADIUS;

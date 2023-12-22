@@ -23,7 +23,7 @@ impl crate::game::Game for Dvd {
 
         Self {
             pos: Vec2::new(rand_x, rand_y),
-            velocity: vec2(1.0, 1.0),
+            velocity: vec2(180.0, 180.0),
             window_size,
             logo_size,
             logo,
@@ -40,13 +40,15 @@ impl crate::game::Game for Dvd {
             SelectedGame::Dvd
         };
 
+        let dt = get_frame_time();
+
         self.window_size.x = screen_width();
         self.window_size.y = screen_height();
 
         self.pos = self
             .pos
             .clamp(vec2(0., 0.), self.window_size - self.logo_size)
-            + self.velocity;
+            + self.velocity * dt;
 
         if self.pos.x + self.logo_size.x >= self.window_size.x || self.pos.x <= 0.0 {
             self.velocity.x *= -1.0;
