@@ -1,5 +1,8 @@
 use crate::selector::SelectedGame;
-use macroquad::{prelude::*, audio::{Sound, play_sound, PlaySoundParams}};
+use macroquad::{
+    audio::{play_sound, PlaySoundParams, Sound},
+    prelude::*,
+};
 
 const PADDLE_WIDTH: f32 = 200.0;
 const PADDLE_HEIGHT: f32 = 10.0;
@@ -7,19 +10,19 @@ const PADDLE_PADDING: f32 = 20.0;
 const PADDLE_SPEED: f32 = 180.0;
 
 const BALL_RADIUS: f32 = 5.0;
-const DEFAULT_VELOCITY: Vec2 = vec2(200.0, 200.0);
+const DEFAULT_VELOCITY: Vec2 = vec2(170.0, 170.0);
 
 struct Ball {
     velocity: Vec2,
-    pos: Vec2,
+    hitbox: Rect,
 }
 
 pub struct Pong {
     window_size: Vec2,
     ball: Ball,
     score: (u32, u32),
-    paddle_top: Vec2,
-    paddle_bottom: Vec2,
+    paddle_top: Rect,
+    paddle_bottom: Rect,
     countdown_passed: Option<f32>,
     pub sound: Option<Sound>,
 }
@@ -30,13 +33,15 @@ impl Pong {
 
         self.paddle_bottom.x = paddle_x;
         self.paddle_top.x = paddle_x;
-        self.ball.pos = Vec2::new(
+        self.ball.hitbox = Rect::new(
             self.window_size.x / 2.0,
             if bottom_scored {
                 self.paddle_top.y + PADDLE_PADDING
             } else {
-                self.paddle_bottom.x - PADDLE_PADDING
+                self.paddle_bottom.y - PADDLE_PADDING
             },
+            BALL_RADIUS,
+            BALL_RADIUS,
         );
         self.ball.velocity = DEFAULT_VELOCITY;
 
@@ -64,7 +69,7 @@ impl Pong {
             GRAY,
         );
 
-        draw_circle(self.ball.pos.x, self.ball.pos.y, BALL_RADIUS, WHITE);
+        draw_circle(self.ball.hitbox.x, self.ball.hitbox.y, BALL_RADIUS, WHITE);
 
         // draw paddles
         draw_rectangle(
@@ -87,19 +92,30 @@ impl Pong {
 impl crate::game::Game for Pong {
     fn new() -> Self {
         let win_size = Vec2::new(screen_width(), screen_height());
-        let paddle_x = win_size.x / 2.0 - PADDLE_WIDTH / 2.0;
+        let win_size_center = win_size / 2.0;
+        let paddle_x = win_size_center.x - PADDLE_WIDTH / 2.0;
 
         Self {
             ball: Ball {
                 velocity: DEFAULT_VELOCITY,
-                pos: win_size / 2.0,
+                hitbox: Rect::new(
+                    win_size_center.x,
+                    win_size_center.y,
+                    BALL_RADIUS,
+                    BALL_RADIUS,
+                ),
             },
             score: (0, 0),
-            paddle_top: Vec2::new(paddle_x, PADDLE_PADDING),
-            paddle_bottom: Vec2::new(paddle_x, win_size.y - PADDLE_HEIGHT - PADDLE_PADDING),
+            paddle_top: Rect::new(paddle_x, PADDLE_PADDING, PADDLE_WIDTH, PADDLE_HEIGHT),
+            paddle_bottom: Rect::new(
+                paddle_x,
+                win_size.y - PADDLE_HEIGHT - PADDLE_PADDING,
+                PADDLE_WIDTH,
+                PADDLE_HEIGHT,
+            ),
             window_size: win_size,
             countdown_passed: Some(0.0),
-            sound: None
+            sound: None,
         }
     }
     fn update(&mut self) -> SelectedGame {
@@ -141,47 +157,44 @@ impl crate::game::Game for Pong {
 
         match self.countdown_passed {
             None => {
-                const AUDIO_PARAMS: PlaySoundParams = PlaySoundParams {looped: false, volume: 0.3};
+                const AUDIO_PARAMS: PlaySoundParams = PlaySoundParams {
+                    looped: false,
+                    volume: 0.3,
+                };
 
-                self.ball.pos += self.ball.velocity * dt;
+                self.ball.hitbox.x += self.ball.velocity.x * dt;
+                self.ball.hitbox.y += self.ball.velocity.y * dt;
 
-                // bounding box
-                let ball_box = self.ball.pos + BALL_RADIUS;
-
-                if ball_box.x <= 0.0 || ball_box.x >= self.window_size.x {
+                // screen side collide || side paddle collide
+                if self.ball.hitbox.x - BALL_RADIUS <= 0.0
+                    || self.ball.hitbox.x + BALL_RADIUS >= self.window_size.x
+                    || (self.ball.hitbox.overlaps(&self.paddle_top) && self.ball.hitbox.y <= self.paddle_top.bottom())
+                {
                     self.ball.velocity.x *= -1.0;
                     play_sound(self.sound.as_ref().unwrap(), AUDIO_PARAMS);
                 }
+
                 // bottom scored
-                if self.ball.pos.y + BALL_RADIUS <= 0.0 {
+                if self.ball.hitbox.y + BALL_RADIUS <= 0.0 {
                     self.reset(true);
                     self.score.0 += 1;
                 }
                 // top scored
-                if self.ball.pos.y + BALL_RADIUS >= self.window_size.y {
+                if self.ball.hitbox.y + BALL_RADIUS >= self.window_size.y {
                     self.reset(false);
                     self.score.1 += 1;
                 }
-                if self.ball.pos.x >= self.paddle_bottom.x
-                    && self.ball.pos.x <= self.paddle_bottom.x + PADDLE_WIDTH
-                    && self.ball.pos.y >= self.paddle_bottom.y
-                    && self.ball.pos.y <= self.paddle_bottom.y + PADDLE_HEIGHT
-                {
-                    // Handle collision with the bottom paddle
-                    self.ball.velocity.y *= -1.0; // Reverse the ball's y velocity (assuming it's vertical)
+
+                // bottom paddle
+                let bottom_paddle_collided = self.paddle_bottom.overlaps(&self.ball.hitbox);
+                let top_paddle_collided = self.paddle_top.overlaps(&self.ball.hitbox);
+
+                // top paddle
+                if bottom_paddle_collided || top_paddle_collided {
+                    self.ball.velocity.y *= -1.0;
                     play_sound(self.sound.as_ref().unwrap(), AUDIO_PARAMS);
                 }
 
-                // Check collision with the top paddle
-                if self.ball.pos.x >= self.paddle_top.x
-                    && self.ball.pos.x <= self.paddle_top.x + PADDLE_WIDTH
-                    && self.ball.pos.y >= self.paddle_top.y
-                    && self.ball.pos.y <= self.paddle_top.y + PADDLE_HEIGHT
-                {
-                    // Handle collision with the top paddle
-                    self.ball.velocity.y *= -1.0; // Reverse the ball's y velocity (assuming it's vertical)
-                    play_sound(self.sound.as_ref().unwrap(), AUDIO_PARAMS);
-                }
                 self.draw();
             }
             Some(cp) => {
