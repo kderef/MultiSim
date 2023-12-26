@@ -31,11 +31,8 @@ impl crate::game::Game for Dvd {
     }
 
     fn update(&mut self) -> SelectedGame {
-        let next = if let Some(key) = get_last_key_pressed() {
-            match key {
-                KeyCode::Escape => SelectedGame::None,
-                _ => SelectedGame::Dvd,
-            }
+        let next = if let Some(KeyCode::Escape) = get_last_key_pressed() {
+            SelectedGame::None
         } else {
             SelectedGame::Dvd
         };

@@ -3,7 +3,6 @@
 
 // game trait
 mod game;
-use game::Game;
 
 // Selector for the games
 mod selector;
@@ -22,14 +21,12 @@ mod gol_universe;
 mod dvd;
 
 use gol_consts::{WINDOW_H, WINDOW_W};
-use gol_game::GameOfLife;
-use selector::{Selector, SelectedGame};
-use dvd::Dvd;
-use pong::Pong;
+use selector::Selector;
 
 use std::time::{UNIX_EPOCH, SystemTime};
 use macroquad::{miniquad::conf::Icon, prelude::*, audio::load_sound_from_bytes};
 
+/// Window configuration
 fn window_conf() -> Conf {
     Conf {
         window_title: "MultiSim-rs".to_owned(),
@@ -40,7 +37,7 @@ fn window_conf() -> Conf {
         window_resizable: true,
         sample_count: Default::default(),
         icon: Some(Icon::miniquad_logo()),
-        platform: Default::default(),
+        platform: Default::default()
     }
 }
 
@@ -50,33 +47,21 @@ async fn main() {
     macroquad::rand::srand(
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .and_then(|t| Ok(t.as_secs()))
+            .map(|t| t.as_secs())
             .unwrap_or(69),
     );
 
+
     // instantiate games
     let mut selector = Selector::new();
-    let mut current_game = selector::SelectedGame::None;
-
-    let mut gol = GameOfLife::new();
-    let mut dvd = Dvd::new();
-    let mut pong = Pong::new();
 
     // FUCK the person who made this function async!
-    pong.sound = Some(
-        load_sound_from_bytes(
-            include_bytes!("../assets/beep.wav")
-        ).await.unwrap()
-    );
+    selector.set_pong_sound(load_sound_from_bytes(
+        include_bytes!("../assets/beep.wav")
+    ).await.unwrap());
 
     loop {
-        current_game = match current_game {
-            SelectedGame::Dvd => dvd.update(),
-            SelectedGame::GameOfLife => gol.update(),
-            SelectedGame::None => selector.update(),
-            SelectedGame::Pong => pong.update(),
-        };
-
+        selector.update();
         next_frame().await;
     }
 }

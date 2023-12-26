@@ -19,7 +19,7 @@ lto = true
 opt-level = 3
 
 [dependencies]
-macroquad = {version = "0.4.4", features = ["audio"]}
+macroquad = {version = "0.4.4", default-features = false, features = ["audio"]}
 
 [build-dependencies]
 winres = "0.1"

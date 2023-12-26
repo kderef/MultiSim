@@ -27,7 +27,9 @@ impl Into<(Color, Color, Color)> for Style {
     }
 }
 
-#[derive(Clone, Debug)]
+#[allow(dead_code)]
+#[repr(u8)]
+#[derive(Clone, Debug, Copy)]
 pub enum Theme {
     Default = 0,
     Gruvbox,
@@ -62,18 +64,19 @@ impl Theme {
         }
     }
     pub fn cycle(&mut self) {
-        *self = match *self {
-            Self::Default => Self::Gruvbox,
-            Self::Gruvbox => Self::Matrix,
-            Self::Matrix => Self::Midnight,
-            Self::Midnight => Self::Default,
-            Self::Bolus => Self::Default,
-        };
+        unsafe {
+            *self = std::mem::transmute::<u8, Self>(if (*self as u8) + 1 == Self::Bolus as u8 {
+                0
+            } else {
+                (*self) as u8 + 1
+            });
+        }
     }
     pub fn toggle_bolus(&mut self) {
-        *self = match *self {
-            Self::Bolus => Self::Default,
-            _ => Self::Bolus
+        *self = if let Self::Bolus = *self {
+            Self::Default
+        } else {
+            Self::Default
         };
     }
 }
