@@ -16,7 +16,7 @@ or you can **build it from source**.
 #### Building from source
 Before building you need to have installed on your system:
 - [git](https://git-scm.com/book/en/v2/Getting-Started-The-Command-Line)
-- A C compiler. It works out of the box with [Mingw](https://www.mingw-w64.org/), [GCC](https://gcc.gnu.org/) and [Clang](https://clang.llvm.org/).
+- A C compiler. It works out of the box with [Mingw-w64](https://www.mingw-w64.org/), [GCC](https://gcc.gnu.org/) and [Clang](https://clang.llvm.org/).
 
 Then run the following command in your terminal.
 **NOTE**: replace *{CC}* with your C compiler of choice (*gcc, clang, etc.*).
