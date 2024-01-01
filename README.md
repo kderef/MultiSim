@@ -1,4 +1,6 @@
-# MultiSim.
+# MultiSim
+
+
 *A game collection written in C using [Raylib](https://raylib.com)*.
 ---
 
