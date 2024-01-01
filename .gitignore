@@ -2,3 +2,4 @@ bin
 winresource/resource.o
 build*
 !build.c
+!build-mingw.c
