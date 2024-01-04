@@ -2,7 +2,7 @@
 #define FONT_C_
 
 #include "raylib.h"
-#include "const.h"
+#include "../const.h"
 #include <stdio.h>
 
 // the default font, used in the entire application
@@ -20,5 +20,13 @@ void load_default_font(void) {
 void DrawTextD(const char* text, int pos_x, int pos_y, float font_size, Color tint) {
     DrawTextEx(font, text, (Vector2){pos_x, pos_y}, font_size, 1.0, tint);
 }
+
+// font size
+typedef enum {
+    FONT_S = 24,
+    FONT_M = 30,
+    FONT_L = 35,
+    FONT_XL = 60,
+} FontSize;
 
 #endif

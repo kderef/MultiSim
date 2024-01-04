@@ -3,11 +3,14 @@
 
 #include "raylib.h"
 
+//! Some themes that can be cycled through.
+//! NOTE: secret theme called Bolus can only be activated with B.
+
 typedef struct {
     Color bg;
     Color fg;
     Color ac;
-}ThemeStyle;
+} ThemeStyle;
 
 typedef enum {
     Theme_Default = 0,
@@ -18,14 +21,14 @@ typedef enum {
 } Theme;
 
 static const char* theme_names[] = {
-    "Default",
-    "Gruvbox",
-    "Matrix",
-    "Midnight",
-    "Bolus (cred Fernando!)"
+    [Theme_Default] = "Default",
+    [Theme_Gruvbox] = "Gruvbox",
+    [Theme_Matrix] = "Matrix",
+    [Theme_Midnight] = "Midnight",
+    [Theme_Bolus] = "Bolus (cred Fernando!)"
 };
 
-const char* theme_to_str(Theme theme) {
+static inline const char* theme_to_str(Theme theme) {
     return theme_names[theme];
 }
 
@@ -34,11 +37,13 @@ void theme_toggle_bolus(Theme* theme) {
 }
 
 void theme_cycle(Theme* theme) {
-    *theme = ((*theme) + 1 == Theme_Bolus)? 0 : (*theme) + 1;
+    *theme = (*theme == Theme_Bolus)?
+        Theme_Default : ((*theme) + 1 == Theme_Bolus)?
+            Theme_Default : (*theme) + 1;
 }
 
 // store the themes statically
-const ThemeStyle _DEFAULT = {
+static ThemeStyle _DEFAULT = {
     .bg = {0, 0, 0, 255},
     .fg = {255, 255, 255, 255},
     .ac = {0, 228, 48, 255}
@@ -61,7 +66,7 @@ static ThemeStyle _MIDNIGHT = {
 
 void theme_destructure(Theme theme, Color* bg, Color* fg, Color* ac) {
     switch (theme) {
-        case Theme_Default:
+        case Theme_Default: // NOTE fallthrough
         case Theme_Bolus: {
             *bg = _DEFAULT.bg;
             *fg = _DEFAULT.fg;

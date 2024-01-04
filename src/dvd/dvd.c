@@ -5,19 +5,15 @@
 #include "raymath.h"
 #include "../gamestate.c"
 #include "../const.h"
+#include "../ui/font.c"
 
-// dvd logo
+//! All of the code for rendering and handling the DvD 'game'.
+
+// dvd logo bytes
 INCBIN(dvd_logo, "assets/DVD_logo.png");
 
-typedef enum {
-    DVD_Running = 0,
-    DVD_Paused,
-    DVD_Help
-} DvDGameState;
-
 typedef struct {
-    DvDGameState state;
-
+    GameState state;
     Image logo_png;
     Image logo_png_inverted;
     Texture2D logo;
@@ -29,9 +25,16 @@ typedef struct {
     bool inverted;
 } Dvd;
 
+void dvd_logo_set_random_pos(Dvd* self) {
+    self->position = (Vector2){
+        GetRandomValue(0, self->window_size.x - self->logo.width),
+        GetRandomValue(0, self->window_size.y - self->logo.height)
+    };
+}
+
 Dvd dvd_new(void) {
     Dvd d;
-    d.state = DVD_Help;
+    d.state = GameState_Help;
     d.logo_png = LoadImageFromMemory(".png", dvd_logo_data, dvd_logo_size);
     d.logo_png_inverted = LoadImageFromMemory(".png", dvd_logo_data, dvd_logo_size);
     ImageColorInvert(&(d.logo_png_inverted));
@@ -39,12 +42,11 @@ Dvd dvd_new(void) {
     d.logo = LoadTextureFromImage(d.logo_png);
     d.logo_inverted = LoadTextureFromImage(d.logo_png_inverted);
 
-    d.position = (Vector2){
-        GetRandomValue(0, GetScreenWidth() - d.logo.width),
-        GetRandomValue(0, GetScreenHeight() - d.logo.height)
-    };
-    d.logo_size = (Vector2){d.logo.width, d.logo.height};
-    d.velocity = (Vector2){250, 250};
+    d.window_size = vec2(GetScreenWidth(), GetScreenHeight());
+
+    dvd_logo_set_random_pos(&d);
+    d.logo_size = vec2(d.logo.width, d.logo.height);
+    d.velocity = vec2(250, 250);
 
     d.inverted = false;
 
@@ -52,8 +54,19 @@ Dvd dvd_new(void) {
 }
 
 void dvd_draw_help(Dvd* self) {
+    static float spacing;
+    spacing = 0.0f;
+
     BeginDrawing();
     ClearBackground(BLACK);
+
+    DrawTextD("DvD controls", 3, 0, FONT_XL, GREEN);
+    DrawTextD("H         - toggle help mode", 3, spacing += FONT_XL, FONT_M, RAYWHITE);
+    DrawTextD("I          - invert the colors", 3, spacing += FONT_M, FONT_M, RAYWHITE);
+    DrawTextD("R         - randomize the DvD logo position", 3, spacing += FONT_M, FONT_M, RAYWHITE);
+    DrawTextD("Space   - pause/unpause the DvD logo", 3, spacing += FONT_M, FONT_M, RAYWHITE);
+
+    EndDrawing();
 }
 
 SelectedGame dvd_update(Dvd* self) {
@@ -62,14 +75,22 @@ SelectedGame dvd_update(Dvd* self) {
 
     key = GetKeyPressed();
     switch (key) {
-        case KEY_ESCAPE:
-        return Selected_None;
+        case KEY_ESCAPE: {
+            self->state = GameState_Paused;
+            return Selected_None;   
+        }
         case KEY_H: {
-            self->state = (self->state == DVD_Help)? DVD_Paused : DVD_Help;
+            self->state = (self->state == GameState_Help)? GameState_Paused : GameState_Help;
         } break;
         case KEY_I: {
             self->inverted = !(self->inverted);
-        }
+        } break;
+        case KEY_R: {
+            dvd_logo_set_random_pos(self);
+        } break;
+        case KEY_SPACE: {
+            self->state = (self->state == GameState_Running)? GameState_Paused : GameState_Running;
+        } break;
         default:
     }
     
@@ -78,11 +99,11 @@ SelectedGame dvd_update(Dvd* self) {
     self->window_size = (Vector2){GetScreenWidth(), GetScreenHeight()};
 
     switch (self->state) {
-        case DVD_Help: 
+        case GameState_Help: 
             dvd_draw_help(self);
             return Selected_DVD;
-        case DVD_Running: goto update_dvd;
-        case DVD_Paused: goto draw_dvd;
+        case GameState_Running: goto update_dvd;
+        case GameState_Paused: goto draw_dvd;
     }
 
 update_dvd:
@@ -114,6 +135,9 @@ update_dvd:
 draw_dvd:
     BeginDrawing();
     ClearBackground((self->inverted)? BLACK : WHITE);
+    if (self->state == GameState_Paused) {
+        DrawTextD("[SPACE TO UNPAUSE]", 3, self->window_size.y - FONT_S, FONT_S, GREEN);
+    }
     DrawTexture(
         (self->inverted)? self->logo_inverted : self->logo,
         self->position.x,

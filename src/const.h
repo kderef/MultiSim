@@ -6,7 +6,6 @@
 #define INCBIN_PREFIX
 #define INCBIN_STYLE INCBIN_STYLE_SNAKE
 #include "external/incbin.h"
-#include "font.c"
 
 INCBIN(bolus, "assets/bolus.png");
 

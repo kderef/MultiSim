@@ -3,7 +3,9 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "../font.c"
+#include "font.c"
+
+//! Simple wrapper code to draw buttons to the screen
 
 #define UI_BUTTONS_TEXT_COLOR BLACK
 #define UI_BUTTONS_HEIGHT 50

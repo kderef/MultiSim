@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+//! Definition of the type Cell, which makes up the grid.
+//! This is defined as a typedef instead of enum for size optimization, _Bool = 1 byte.
+
 typedef _Bool Cell;
 #define Dead 0
 #define Alive 1

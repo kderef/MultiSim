@@ -1,6 +1,7 @@
 #ifndef WINDOW_ICON_C_
 #define WINDOW_ICON_C_
 
+#include "raylib.h"
 #include "../const.h"
 
 static Image window_icon;
