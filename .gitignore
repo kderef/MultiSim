@@ -1,5 +1,7 @@
 bin
 winresource/resource.o
 build*
+*.exe
+*.out
 !build.c
-!build-mingw.c
+!build.h
