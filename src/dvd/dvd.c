@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
+#include "../ui/raygui_incl.h"
 #include "../gamestate.c"
 #include "../const.h"
 #include "../ui/font.c"
@@ -56,6 +57,10 @@ void dvd_draw_help(Dvd* self) {
     BeginDrawing();
     ClearBackground(BLACK);
 
+    GuiButton(
+        rect(50, 50, 300, 300), "Hello World!"
+    );
+
     DrawTextD("DvD controls", 3, 0, FONT_XL, GREEN);
     DrawTextD("H         - toggle help mode", 3, spacing += FONT_XL, FONT_M, RAYWHITE);
     DrawTextD("I          - invert the colors", 3, spacing += FONT_M, FONT_M, RAYWHITE);
@@ -96,8 +101,7 @@ SelectedGame dvd_update(Dvd* self) {
     }
     
     dt = GetFrameTime();
-    if (self->passed_time > 36.0f) self->passed_time = 0.0f;
-    self->passed_time += dt;
+    self->passed_time = (self->passed_time > 36.0f)? 0.0f : self->passed_time + dt;
 
     switch (self->state) {
         case GameState_Help: 

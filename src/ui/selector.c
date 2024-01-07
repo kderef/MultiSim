@@ -1,6 +1,8 @@
 #ifndef SELECTOR_C_
 #define SELECTOR_C_
 
+#include "raygui_incl.h"
+#include "raygui_style_dark.h"
 #include "../const.h"
 #include "../gol/game.c"
 #include "../gamestate.c"
@@ -25,6 +27,9 @@ void selector_init(Selector* to_init) {
     to_init->pong = pong_new();
     to_init->state = GameState_Help;
     to_init->selected = Selected_None;
+
+    // setup raygui
+    GuiLoadStyleDark();
 }
 
 void selector_deinit(Selector* ptr) {
@@ -34,8 +39,6 @@ void selector_deinit(Selector* ptr) {
 }
 
 SelectedGame selector_title_screen(Selector* s) {
-    static bool mouse_clicked;
-    static Vector2 mouse_pos;
     // buttons
     static int button_x;
     static const int BUTTONS_SPACING = 80;
@@ -43,16 +46,14 @@ SelectedGame selector_title_screen(Selector* s) {
     // screen coords
     static int screen_x_center;
     static int screen_y_center;
-    // buttons
-    static Button gamebutton_gol, gamebutton_dvd, gamebutton_pong;
+
     global_screen_width = GetScreenWidth();
     global_screen_height = GetScreenHeight();
 
     screen_x_center = global_screen_width / 2;
     screen_y_center = global_screen_height / 2;
 
-    mouse_clicked = IsMouseButtonDown(MOUSE_LEFT_BUTTON);
-    mouse_pos = GetMousePosition();
+    if (IsKeyPressed(KEY_F5)) global_show_fps = !global_show_fps;
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -63,40 +64,21 @@ SelectedGame selector_title_screen(Selector* s) {
         50,
         100.0, RAYWHITE
     );
-    DrawTextD(
-        "by Kian (Kn-Ht)",
-        3,
-        global_screen_height - 20, 20.0, GRAY
-    );
+
+    GuiDrawText("By Kian (kn-ht)", rect(0, global_screen_height - 20, 200, 20), TEXT_ALIGN_LEFT, GRAY);
 
     // draw the buttons
     button_x = screen_x_center * 0.5;
 
-    gamebutton_gol = button_new(
-        "Game of Life",
-        screen_x_center - 100, button_x, screen_y_center - BUTTONS_SPACING,
-        screen_x_center, BUTTON_HEIGHT
-    );
-
-    gamebutton_dvd = button_new(
-        "DvD bouncing sim",
-        screen_x_center - 120,
-        button_x, screen_y_center,
-        screen_x_center, BUTTON_HEIGHT
-    );
-    gamebutton_pong = button_new(
-        "Pong",
-        screen_x_center - 50,
-        button_x,
-        screen_y_center + BUTTONS_SPACING,
-        screen_x_center, BUTTON_HEIGHT
-    );
-
-    // this checks if the button is highlighted/clicked
-    // and draws it accordingly
-    BUTTON_DRAW(gamebutton_gol, mouse_pos, Selected_GOL);
-    BUTTON_DRAW(gamebutton_dvd, mouse_pos, Selected_DVD);
-    BUTTON_DRAW(gamebutton_pong, mouse_pos, Selected_PONG);
+    if (GuiButton(rect(button_x, screen_y_center - BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Game of Life")) {
+        return Selected_GOL;
+    }
+    if (GuiButton(rect(button_x, screen_y_center, screen_x_center, BUTTON_HEIGHT), "DvD Bouncy")) {
+        return Selected_DVD;
+    }
+    if (GuiButton(rect(button_x, screen_y_center + BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Pong")) {
+        return Selected_PONG;
+    }
 
     return Selected_None;
 }
@@ -123,7 +105,7 @@ void selector_update(Selector* s) {
     }
 
     if (global_show_fps)
-        DrawTextD(TextFormat("FPS: %d", GetFPS()), global_screen_width - 130, global_screen_height - 30, 33.0, GOLD);
+        DrawTextD(TextFormat("FPS: %d", GetFPS()), global_screen_width - 130, 0, 33.0, GOLD);
     EndDrawing();
 
     if (next != s->selected) {

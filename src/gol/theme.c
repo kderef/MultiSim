@@ -67,9 +67,9 @@ static const ThemeStyle THEMES[] = {
         .bg_color = {0, 0, 0, 255},
         .fg_color = {200, 200, 200, 255},
         .ac_color = {214, 93, 14, 255},
-        .bg_char = "~",
-        .fg_char = "~",
-        .bg_char_color = {80, 80, 80, 255},
+        .bg_char = "#",
+        .fg_char = "",
+        .bg_char_color = {30, 30, 30, 255},
     },
     [Theme_Bolus] = {
         .name = "Bolus (cred Fernando)",

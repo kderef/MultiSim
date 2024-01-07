@@ -15,11 +15,6 @@
 //! The general game code. Things such as rendering and state management
 //! are done in here.
 
-void state_toggle(GameState* p_state) {
-    *p_state = (*p_state == GameState_Paused) ?
-        GameState_Running : GameState_Paused;
-}
-
 typedef struct {
     Universe universe;
     GameState state;
@@ -32,7 +27,18 @@ typedef struct {
     Theme prev_theme;
     Image bolus_png;
     Texture2D bolus;
+
+    uint64_t iterations;
 } GameOfLife;
+
+void gol_state_toggle(GameOfLife* ptr) {
+    if (ptr->state == GameState_Paused) {
+        ptr->iterations = 0;
+        ptr->state = GameState_Running;
+    } else {
+        ptr->state = GameState_Paused;
+    }
+}
 
 GameOfLife game_of_life_new() {
     GameOfLife gol = {0};
@@ -40,7 +46,8 @@ GameOfLife game_of_life_new() {
     gol.universe = universe_new(GOL_GRID_W, GOL_GRID_H);
     gol.bolus_png = LoadImageFromMemory(".png", bolus_data, bolus_size);
     gol.bolus = LoadTextureFromImage(gol.bolus_png);
-    gol.state = GameState_Help;
+    gol.state = GameState_Paused;
+    gol.theme = Theme_Default;
     gol.prev_theme = -1;
 
     return gol;
@@ -73,12 +80,11 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
     static float passed_time;
     static float passed_resize_time;
     static float passed_show_scroll_time;
-
-    if (passed_time >= gol->update_frame_cap)
-        passed_time = 0.0;
+    static bool mouse_in_grid;
 
     dt = GetFrameTime();
-    passed_time += dt;
+
+    passed_time = (passed_time >= gol->update_frame_cap)? 0.0f : passed_time + dt;
     passed_resize_time += dt;
     passed_show_scroll_time += dt;
 
@@ -87,7 +93,7 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
 
     if (size_changed || gol->resize_queued) {
         uint32_t new_w = gol->window_width / GOL_SCALE;
-        uint32_t new_h = gol->window_height / GOL_SCALE;
+        uint32_t new_h = (gol->window_height - GOL_STATUS_BAR_HEIGHT) / GOL_SCALE;
 
         universe_resize(&(gol->universe), new_w, new_h);
         gol->resize_queued = false;
@@ -99,9 +105,11 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
     // handle mouse position
     gol->mouse_pos = GetMousePosition();
     gol->mouse_pos.x = Clamp(floorf(gol->mouse_pos.x), 0.0, (float)(gol->window_width) - 1.0) / (float)GOL_SCALE;
-    gol->mouse_pos.y = Clamp(floorf(gol->mouse_pos.y), 0.0, (float)(gol->window_height) - 1.0) / (float)GOL_SCALE;
+    gol->mouse_pos.y = Clamp(floorf(gol->mouse_pos.y), 0.0, (float)(gol->window_height - GOL_STATUS_BAR_HEIGHT) - 1.0) / (float)GOL_SCALE;
     mouse_left_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     mouse_right_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+
+    mouse_in_grid = gol->mouse_pos.y < (gol->window_height - GOL_STATUS_BAR_HEIGHT - 1.0) / GOL_SCALE;
 
     // handle the keys
     scrollwheel_move = GetMouseWheelMove();
@@ -122,10 +130,6 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
 
     switch (key) {
         case 0: break;
-        case KEY_H: {
-            gol->state = (gol->state == GameState_Help)?
-                GameState_Paused : GameState_Help;
-        } break;
         case KEY_C: {
             universe_fill(&(gol->universe), Dead);
         } break;
@@ -147,7 +151,7 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
             theme_toggle_bolus(&(gol->theme));
         } break;
         case KEY_SPACE: {
-            state_toggle(&(gol->state));
+            gol_state_toggle(gol);
         } break;
         case KEY_ENTER:
         case KEY_KP_ENTER: {
@@ -161,7 +165,7 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
         case KEY_F11: {
             ToggleFullscreen();
         } break;
-        default:
+        default: {}
     }
 
     if (gol->prev_theme != gol->theme)
@@ -172,14 +176,17 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
             if (passed_time >= gol->update_frame_cap) {
                 universe_update_cells(&(gol->universe));
                 passed_time = 0.0;
+                gol->iterations += 1;
             }
         } break;
         case GameState_Paused: {
-            if (mouse_left_down) {
-                universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
-            }
-            else if (mouse_right_down) {
-                universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Dead);
+            if (mouse_in_grid) {
+                if (mouse_left_down) {
+                    universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
+                }
+                else if (mouse_right_down) {
+                    universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Dead);
+                }
             }
         }
         default:
@@ -187,54 +194,6 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
 
     BeginDrawing();
     ClearBackground(theme_style.bg_color);
-
-    if (gol->state == GameState_Help) {
-        static float spacing;
-        spacing = 0.0;
-
-        DrawTextD("CONTROLS", 2, spacing, FONT_L, theme_style.ac_color);
-        spacing += FONT_L;
-
-        snprintf(buffer, sizeof buffer, "UPDATE TIME: %.2fs", gol->update_frame_cap);
-        DrawTextD(buffer, gol->window_width - 250, 3, FONT_M, theme_style.ac_color);
-
-        // helper macros
-        #define ADD_CONTROL(S) \
-            DrawTextD((S), 3, spacing, FONT_M, theme_style.fg_color); \
-            spacing += FONT_M
-
-        #define ADD_FMT_CONTROL(...) \
-            snprintf(buffer, sizeof buffer, __VA_ARGS__); \
-            DrawTextD(buffer, 3, spacing, FONT_M, theme_style.fg_color); \
-            spacing += FONT_M
-
-        ADD_CONTROL("Left mouse    - make cell alive");
-        ADD_CONTROL("Right mouse   - make cell dead");
-        ADD_CONTROL("Space          - pause/unpause game");
-        ADD_CONTROL("H                - help menu");
-        ADD_CONTROL("C                - clear the board");
-        ADD_CONTROL("A                - fill the board with live cells");
-        DrawTextD("I                - invert the cells", 8, spacing, FONT_M, theme_style.fg_color);
-        spacing += FONT_M;
-        ADD_CONTROL("R                - generate a random pattern");
-        ADD_FMT_CONTROL("T                - switch theme (currently: %s)", theme_style.name);
-        ADD_CONTROL("+/scroll UP    - add " STRINGIFY(GOL_DEFAULT_TIME_STEP) " to update time.");
-        ADD_CONTROL("-/scroll DOWN - subtract " STRINGIFY(GOL_DEFAULT_TIME_STEP) " to update time.");
-        spacing += FONT_XL;
-
-        DrawTextD("Made by Kian (Kn-Ht)", gol->window_width - 182, gol->window_height - 20, 20.0, GRAY);
-        DrawTextD(
-            "To exit to the main menu press Escape",
-            4, spacing, FONT_L, theme_style.ac_color
-        );
-        spacing += FONT_L;
-        DrawTextD(
-            "Press Enter or H to start Drawing!",
-            4, spacing, FONT_L, theme_style.ac_color
-        );
-
-         return Selected_GOL;
-    }
 
     switch (gol->theme) {
         case Theme_Midnight: {
@@ -274,8 +233,6 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
                             theme_style.bg_char_color
                         );
                     }
-
-
                 }
             }
         } break;
@@ -318,20 +275,70 @@ SelectedGame game_of_life_update(GameOfLife* gol) {
         draw_update_time = false;
     }
 
-    if (gol->state == GameState_Paused) {
+    GuiDrawRectangle(
+            rect(0, global_screen_height - GOL_STATUS_BAR_HEIGHT, global_screen_width, GOL_STATUS_BAR_HEIGHT),
+            1, theme_style.fg_color, theme_style.bg_color
+    );
+
+    #define ICON_SIZE 38
+    #define ICON_PADDING 1
+
+    const int icon_y = global_screen_height - ICON_SIZE - ICON_PADDING;
+    int icon_padding_x = ICON_PADDING;
+
+    if (GuiButton(rect(icon_padding_x, icon_y, ICON_SIZE, ICON_SIZE), "#129#")) {
+        gol->update_frame_cap = max(0.0, gol->update_frame_cap - GOL_DEFAULT_TIME_STEP);
+        draw_update_time = true;
+        passed_show_scroll_time = 0.0;
+    }
+    if (GuiButton(
+        rect(icon_padding_x += ICON_SIZE + ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE),
+        (gol->state == GameState_Paused)? "#131#" : "#132#"
+    )) gol_state_toggle(gol);
+    if (GuiButton(
+        rect(icon_padding_x += ICON_SIZE + ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE),
+        "#134#"
+    )) {
+        gol->update_frame_cap += GOL_DEFAULT_TIME_STEP;
+        draw_update_time = true;
+        passed_show_scroll_time = 0.0;
+    }
+
+    icon_padding_x = gol->window_width - ICON_PADDING - ICON_SIZE;
+
+    if (GuiButton(
+        rect(icon_padding_x, icon_y, ICON_SIZE, ICON_SIZE), "#159#"
+    )) return Selected_None;
+
+    if (GuiButton(
+        rect(
+            icon_padding_x -= (ICON_SIZE - ICON_PADDING) * 2,
+            icon_y, ICON_SIZE, ICON_SIZE
+        ), "#29#"
+    )) universe_fill(&(gol->universe), Alive);
+
+    if (GuiButton(
+        rect(icon_padding_x -= ICON_SIZE - ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE), "#143#"
+    )) universe_fill(&(gol->universe), Dead);
+
+    if (GuiButton(
+        rect(icon_padding_x -= ICON_SIZE - ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE),
+        "#194#"
+    )) universe_fill_random(&(gol->universe));
+    if (GuiButton(
+        rect(icon_padding_x -= ICON_SIZE - ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE),
+        "#26#"
+    )) theme_cycle(&(gol->theme));
+
+    //snprintf(buffer, sizeof buffer, "%llu", gol->iterations); // NOTE: this might be useful later
+    //DrawTextD(buffer, icon_padding_x - 100, icon_y, 30.0, WHITE);
+
+    if (gol->state == GameState_Paused && mouse_in_grid) {
         DrawRectangleLines(
             floorf(gol->mouse_pos.x) * GOL_SCALE,
             floorf(gol->mouse_pos.y) * GOL_SCALE,
             GOL_SCALE,
             GOL_SCALE,
-            theme_style.ac_color
-        );
-
-        DrawTextD(
-            "[DESIGN MODE]",
-            3,
-            gol->window_height - 25,
-            25,
             theme_style.ac_color
         );
     }
