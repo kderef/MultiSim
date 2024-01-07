@@ -23,7 +23,7 @@ int main(void) {
     // raylib initialization
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_W, WINDOW_H, selected_get_window_title(selector.selected));
-    SetTargetFPS(200);
+    // SetTargetFPS(300);
     SetExitKey(0);
     SetWindowMinSize(WINDOW_W, WINDOW_H);
 

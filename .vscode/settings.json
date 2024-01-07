@@ -12,5 +12,6 @@
         "xstring": "c",
         "xutility": "c",
         "stdbool.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }

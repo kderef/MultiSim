@@ -14,6 +14,16 @@
 #define UI_BUTTONS_FONT_SIZE 40.0
 #define UI_BUTTONS_TEXT_Y_OFFSET 5
 
+// macro for reducing repeated code
+#define BUTTON_DRAW(BTN, MOUSE_POS, SELECTED) \
+    if (button_is_hovered(&(BTN), &(MOUSE_POS))) { \
+        if (mouse_clicked) { \
+            button_draw(&(BTN)); \
+            return SELECTED; \
+        } \
+        button_draw_hovered(&(BTN)); \
+    } else button_draw(&(BTN));
+
 typedef struct {
     const char* text;
     int text_x;

@@ -31,7 +31,6 @@ Universe universe_new(size_t width, size_t height) {
     u.width = width;
     u.height = height;
 
-
     u.next_generation_size = u.len;
     u.next_generation = (Cell*) malloc(u.len * sizeof(Cell));
 
@@ -40,26 +39,30 @@ Universe universe_new(size_t width, size_t height) {
 static inline void universe_fill(Universe* p_uvs, Cell with) {
     memset(p_uvs->cells, with, (p_uvs->len) * sizeof(Cell));
 }
+
 static inline Cell universe_get(Universe* p_uvs, size_t x, size_t y) {
     return p_uvs->cells[min(y, p_uvs->height - 1) * (p_uvs->width) + min(x, p_uvs->width - 1)];
 }
+
 static inline void universe_set(Universe* p_uvs, size_t x, size_t y, Cell to) {
     p_uvs->cells[min(y, p_uvs->height - 1) * (p_uvs->width) + min(x, p_uvs->width - 1)] = to;
 }
+
 static inline void universe_invert(Universe* p_uvs) {
     for (size_t i = 0; i < p_uvs->len; i++) {
         p_uvs->cells[i] = !(p_uvs->cells[i]);
     }
 }
+
 static inline void universe_fill_random(Universe* p_uvs) {
-    static int n;
     for (size_t i = 0; i < p_uvs->len; i++) {
-        n = GetRandomValue(0, INT_MAX);
+        int n = GetRandomValue(0, INT_MAX);
         p_uvs->cells[i] = n % 3 == 0 || n % 7 == 0;
     }
 }
+
 void universe_resize(Universe* p_uvs, size_t new_width, size_t new_height) {
-    static size_t new_w, new_h, new_len, x, y;
+    static size_t new_w, new_h, new_len;
     static Cell* new_cells;
 
     if (new_width <= p_uvs->width && new_height <= p_uvs->height) return;
@@ -70,8 +73,8 @@ void universe_resize(Universe* p_uvs, size_t new_width, size_t new_height) {
 
     new_cells = (Cell*) calloc(new_len, sizeof(Cell));
 
-    for (y = 0; y < min(p_uvs->height, new_height); y++) {
-        for (x = 0; x < min(p_uvs->width, new_width); x++) {
+    for (size_t y = 0; y < min(p_uvs->height, new_height); y++) {
+        for (size_t x = 0; x < min(p_uvs->width, new_width); x++) {
             new_cells[y * new_w + x] = universe_get(p_uvs, x, y);
         }
     }
@@ -90,43 +93,40 @@ void universe_deinit(Universe* p_uvs) {
 }
 
 void universe_update_cells(Universe* p_uvs) {
-    static size_t x, y;
-
     if (p_uvs->len > p_uvs->next_generation_size) {
-        p_uvs->next_generation = (Cell*) realloc(p_uvs->next_generation, p_uvs->len);
+        p_uvs->next_generation = realloc(p_uvs->next_generation, p_uvs->len);
         p_uvs->next_generation_size = p_uvs->len;
     }
 
     memcpy(p_uvs->next_generation, p_uvs->cells, p_uvs->len);
 
     /* used each time the function is called */
-    static uint8_t neighbours = 0;
+    static u8 neighbours;
     static Cell cell_state;
 
-    for (y = 0; y < p_uvs->height; y++) {
-        for (x = 0; x < p_uvs->width; x++) {
+    for (size_t y = 0; y < p_uvs->height; y++) {
+        for (size_t x = 0; x < p_uvs->width; x++) {
             cell_state = universe_get(p_uvs, x, y);
             neighbours = 0;
 
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
+            for (i8 dx = -1; dx <= 1; dx++) {
+                for (i8 dy = -1; dy <= 1; dy++) {
                     if (dx == 0 && dy == 0) continue;
                     
-                    int nx = (int)(x) + dx;
-                    int ny = (int)(y) + dy;
+                    size_t nx = x + dx;
+                    size_t ny = y + dy;
 
                     if (
                         nx >= 0 &&
-                        nx < (int)p_uvs->width &&
+                        nx < p_uvs->width &&
                         ny >= 0 &&
-                        ny < (int)p_uvs->height &&
-                        universe_get(p_uvs, (size_t)nx, (size_t)ny)
+                        ny < p_uvs->height &&
+                        universe_get(p_uvs, nx, ny)
                     ) neighbours += 1;
                 }
             }
 
-            cell_next_iteration(&cell_state, neighbours);
-            p_uvs->next_generation[y * (p_uvs->width) + x] = cell_state;
+            p_uvs->next_generation[y * (p_uvs->width) + x] = cell_next_iteration(cell_state, neighbours);
         }
     }
     memcpy(p_uvs->cells, p_uvs->next_generation, p_uvs->next_generation_size);

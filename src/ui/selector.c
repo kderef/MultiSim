@@ -17,9 +17,6 @@ typedef struct {
 
     SelectedGame selected;
     GameState state;
-
-    int screen_width;
-    int screen_height;
 } Selector;
 
 void selector_init(Selector* to_init) {
@@ -48,11 +45,11 @@ SelectedGame selector_title_screen(Selector* s) {
     static int screen_y_center;
     // buttons
     static Button gamebutton_gol, gamebutton_dvd, gamebutton_pong;
+    global_screen_width = GetScreenWidth();
+    global_screen_height = GetScreenHeight();
 
-    s->screen_width = GetScreenWidth();
-    s->screen_height = GetScreenHeight();
-    screen_x_center = s->screen_width * 0.5;
-    screen_y_center = s->screen_height * 0.5;
+    screen_x_center = global_screen_width / 2;
+    screen_y_center = global_screen_height / 2;
 
     mouse_clicked = IsMouseButtonDown(MOUSE_LEFT_BUTTON);
     mouse_pos = GetMousePosition();
@@ -69,7 +66,7 @@ SelectedGame selector_title_screen(Selector* s) {
     DrawTextD(
         "by Kian (Kn-Ht)",
         3,
-        s->screen_height - 20, 20.0, GRAY
+        global_screen_height - 20, 20.0, GRAY
     );
 
     // draw the buttons
@@ -95,43 +92,20 @@ SelectedGame selector_title_screen(Selector* s) {
         screen_x_center, BUTTON_HEIGHT
     );
 
-    if (button_is_hovered(&gamebutton_gol, &mouse_pos)) {
-        if (mouse_clicked) {
-            button_draw_clicked(&gamebutton_gol);
-            return Selected_GOL;
-        }
-        button_draw_hovered(&gamebutton_gol);
-    }
-    else button_draw(&gamebutton_gol);
-    
-    if (button_is_hovered(&gamebutton_dvd, &mouse_pos)) {
-        if (mouse_clicked) {
-            button_draw_clicked(&gamebutton_dvd);
-            return Selected_DVD;
-        }
-        button_draw_hovered(&gamebutton_dvd);
-    }
-    else button_draw(&gamebutton_dvd);
+    // this checks if the button is highlighted/clicked
+    // and draws it accordingly
+    BUTTON_DRAW(gamebutton_gol, mouse_pos, Selected_GOL);
+    BUTTON_DRAW(gamebutton_dvd, mouse_pos, Selected_DVD);
+    BUTTON_DRAW(gamebutton_pong, mouse_pos, Selected_PONG);
 
-    if (button_is_hovered(&gamebutton_pong, &mouse_pos)) {
-        if (mouse_clicked) {
-            button_draw_clicked(&gamebutton_pong);
-            return Selected_PONG;
-        }
-        button_draw_hovered(&gamebutton_pong);
-    }
-    else button_draw(&gamebutton_pong);
-    
-
-    EndDrawing();
     return Selected_None;
 }
 
 void selector_update(Selector* s) {
     static SelectedGame next;
-    next = Selected_None;
 
-    TraceLog(LOG_ALL, "%d", s->selected);
+    global_screen_width = GetScreenWidth();
+    global_screen_height = GetScreenHeight();
 
     switch (s->selected) {
         case Selected_None: {
@@ -147,6 +121,11 @@ void selector_update(Selector* s) {
             next = pong_update(&(s->pong));
         } break;
     }
+
+    if (global_show_fps)
+        DrawTextD(TextFormat("FPS: %d", GetFPS()), global_screen_width - 130, global_screen_height - 30, 33.0, GOLD);
+    EndDrawing();
+
     if (next != s->selected) {
         SetWindowTitle(selected_get_window_title(next));
         s->selected = next;

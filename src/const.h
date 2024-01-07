@@ -1,6 +1,8 @@
 #ifndef CONST_H_
 #define CONST_H_
 
+#include <stdint.h>
+
 // Incbin / binary files
 #define INCBIN_SILENCE_BITCODE_WARNING
 #define INCBIN_PREFIX
@@ -28,8 +30,11 @@ INCBIN(bolus, "assets/bolus.png");
 #define GOL_GRID_W (WINDOW_W / GOL_SCALE)
 #define GOL_GRID_H (WINDOW_H / GOL_SCALE)
 
-#define GOL_DEFAULT_TIME_STEP 0.05
-#define GOL_DEFAULT_UPDATE_CAP 0.50
+#define GOL_DEFAULT_TIME_STEP 0.005
+#define GOL_DEFAULT_UPDATE_CAP 0.2
 #define GOL_RESIZE_TIME_LIMIT 0.2
+
+typedef uint_fast8_t u8;
+typedef int_fast8_t i8;
 
 #endif
