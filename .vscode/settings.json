@@ -1,5 +1,7 @@
 {
     "files.associations": {
+        "*.h": "c",
+        "*.hpp": "cpp",
         "raylib.h": "c",
         "atomic": "c",
         "compare": "c",
@@ -11,7 +13,10 @@
         "xmemory": "c",
         "xstring": "c",
         "xutility": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "utility": "cpp",
+        "iosfwd": "c",
+        "xlocbuf": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

@@ -3,18 +3,18 @@
 
 #include "raylib.h"
 
-typedef enum {
+enum SelectedGame {
     Selected_None = 0,
     Selected_GOL,
     Selected_DVD,
     Selected_PONG,
-} SelectedGame;
+};
 
-typedef enum {
+enum GameState {
     GameState_Running = 0,
     GameState_Paused,
     GameState_Help,
-} GameState;
+};
 
 // global state
 
@@ -23,10 +23,10 @@ static int global_screen_width = 0;
 static int global_screen_height = 0;
 
 static const char* SELECTED_TITLES[] = {
-    [Selected_None] = "MultiSim - menu",
-    [Selected_GOL] = "MultiSim - Game of Life",
-    [Selected_DVD] = "MultiSim - DvD bouncy",
-    [Selected_PONG] = "MultiSim - Pong"
+    "MultiSim - menu",
+    "MultiSim - Game of Life",
+    "MultiSim - DvD bouncy",
+    "MultiSim - Pong"
 };
 
 #define selected_get_window_title(S) (SELECTED_TITLES[S])
