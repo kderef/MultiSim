@@ -14,8 +14,18 @@
 #define _STRINGIFY(X) #X
 
 // easier initialization
-#define rect(X, Y, W, H) (Rectangle){(float)(X), (float)(Y), (float)(W), (float)(H)}
-#define vec2(X, Y) (Vector2){(float)(X), (float)(Y)}
+template<typename T>
+constexpr Vector2 vec2(T x, T y) {
+    return (Vector2){static_cast<float>(x), static_cast<float>(y)};
+}
+
+template<typename T>
+constexpr Rectangle rect(T x, T y, T w, T h) {
+    return (Rectangle) {
+        static_cast<float>(x), static_cast<float>(y),
+        static_cast<float>(w), static_cast<float>(h)
+    };
+}
 
 /* GOL */
 constexpr int GOL_SCALE = 16;

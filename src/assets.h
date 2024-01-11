@@ -32,6 +32,7 @@ void assets_load(void) {
 void assets_unload(void) {
     UnloadTexture(dvd_logo_texture);
     UnloadTexture(bolus_texture);
+    UnloadFont(font);
 }
 
 #endif

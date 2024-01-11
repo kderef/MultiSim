@@ -39,7 +39,7 @@ int run_cmd(const char* command) {
 
 // generic C compiler flags
 #ifndef CFLAGS
-#define CFLAGS " -lm -Wall -I include/ "
+#define CFLAGS " -lm -Wall -I include/ -nodefaultlibs -fno-exceptions "
 #endif
 
 // for release mode

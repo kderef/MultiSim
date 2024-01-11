@@ -2,6 +2,7 @@
     "files.associations": {
         "*.h": "c",
         "*.hpp": "cpp",
+        "*.cpp": "cpp",
         "raylib.h": "c",
         "atomic": "c",
         "compare": "c",
@@ -16,7 +17,8 @@
         "stdbool.h": "c",
         "utility": "cpp",
         "iosfwd": "c",
-        "xlocbuf": "c"
+        "xlocbuf": "c",
+        "font.c": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }
