@@ -2,25 +2,26 @@
 #define SELECTEDGAME_H_
 
 #include "raylib.h"
-#include "const.hpp"
+#include "const.h"
 #include <stdlib.h>
 
-enum SelectedGame : u8 {
+typedef enum SelectedGame {
     Selected_None = 0,
     Selected_GOL,
     Selected_DVD,
     Selected_PONG,
-};
+    Selected_MINESWEEPER
+} SelectedGame;
 
-enum GameState : u8 {
+typedef enum GameState {
     GameState_Running = 0,
     GameState_Paused,
     GameState_Help,
-};
+} GameState;
 
 // global state
 
-constexpr size_t GLOBAL_TEXT_BUF_SIZE = 256 + 1;
+#define GLOBAL_TEXT_BUF_SIZE (256 + 1)
 
 static bool global_show_fps = false;
 static int global_screen_width = 0;
@@ -31,10 +32,11 @@ static char global_text_buf[GLOBAL_TEXT_BUF_SIZE];
 #define g_sprintf(FMT, ...) snprintf(global_text_buf, GLOBAL_TEXT_BUF_SIZE, FMT, ##__VA_ARGS__)
 
 static const char* SELECTED_TITLES[] = {
-    "MultiSim - menu",
-    "MultiSim - Game of Life",
-    "MultiSim - DvD bouncy",
-    "MultiSim - Pong"
+    [Selected_None] = "MultiSim - menu",
+    [Selected_GOL] = "MultiSim - Game of Life",
+    [Selected_DVD] = "MultiSim - DvD bouncy",
+    [Selected_PONG] = "MultiSim - Pong",
+    [Selected_MINESWEEPER] = "MultiSim - Minesweeper"
 };
 
 #define selected_get_window_title(S) (SELECTED_TITLES[S])

@@ -1,10 +1,10 @@
 #include "raylib.h"
-#include "const.hpp"
+#include "const.h"
 
 #include <stdio.h>
 #include <stdint.h>
 
-#include "ui/selector.cpp"
+#include "ui/selector.c"
 #include "ui/windowicon.c"
 
 int main(void) {
@@ -24,8 +24,8 @@ int main(void) {
     SetExitKey(0);
     SetWindowMinSize(WINDOW_W, WINDOW_H);
 
-    // initialization of bundled binary files
-    assets_load();
+    // load the default font (bundled IN exe)
+    load_default_font();
 
 #ifndef __APPLE__
     load_window_icon();
@@ -33,10 +33,10 @@ int main(void) {
 #endif
 
     // the selector manages all the games and renders the title screen
-    Selector selector;
+    Selector selector = selector_new();
 
     while (!WindowShouldClose()) {
-        selector.update();
+        selector_update(&selector);
     }
 
     CloseWindow();
@@ -45,7 +45,7 @@ int main(void) {
     unload_window_icon();
 #endif
 
-    assets_unload();
+    unload_default_font();
 
     return 0;
 }

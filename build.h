@@ -31,15 +31,15 @@ int run_cmd(const char* command) {
 // the C compiler to use
 #ifndef CC
 #ifdef __APPLE__
-#define CC "clang++"
+#define CC "clang"
 #else
-#define CC "g++"
+#define CC "gcc"
 #endif
 #endif
 
 // generic C compiler flags
 #ifndef CFLAGS
-#define CFLAGS " -lm -Wall -I include/ -nodefaultlibs -fno-exceptions -std=c++20 "
+#define CFLAGS " -lm -Wall -Wextra -I include/ "
 #endif
 
 // for release mode
@@ -70,7 +70,7 @@ int run_cmd(const char* command) {
 #endif
 
 #ifndef IN
-#define IN " ./src/main.cpp "
+#define IN " ./src/main.c "
 #endif
 
 #ifndef OUT

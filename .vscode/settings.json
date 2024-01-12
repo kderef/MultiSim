@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.xyz": "v",
         "*.h": "c",
         "*.hpp": "cpp",
         "*.cpp": "cpp",
@@ -18,7 +19,10 @@
         "utility": "cpp",
         "iosfwd": "c",
         "xlocbuf": "c",
-        "font.c": "cpp"
+        "font.c": "cpp",
+        "locale": "c",
+        "__node_handle": "c",
+        "__locale": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

@@ -2,7 +2,7 @@
 #define WINDOW_ICON_C_
 
 #include "raylib.h"
-#include "../const.hpp"
+#include "../const.h"
 
 static Image window_icon;
 
