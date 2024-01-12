@@ -7,8 +7,6 @@
 //! Some themes that can be cycled through.
 //! NOTE: secret theme called Bolus can only be activated with B.
 
-static const Color COLOR_NONE = (Color){0, 0, 0, 0};
-
 typedef struct GolThemeStyle {
     Color bg_color;
     Color fg_color;

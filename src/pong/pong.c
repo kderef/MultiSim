@@ -101,6 +101,8 @@ void pong_reset(Pong* p, bool left_scored) {
 }
 
 static inline void pong_draw_help(Pong* p) {
+    (void)p; // FIXME
+
     BeginDrawing();
     ClearBackground(BLACK);
     // TODO
@@ -254,6 +256,7 @@ SelectedGame pong_update(Pong* p) {
 }
 
 inline void pong_handle_collision(Pong* p) {
+    (void)p; // FIXME
     // TODO
 }
 

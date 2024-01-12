@@ -53,7 +53,7 @@ static inline void dvd_set_random_pos(Dvd* d) {
     );
 }
 
-static inline void dvd_draw_help(Dvd* d) {
+static inline void dvd_draw_help() {
     static float spacing;
     spacing = 0.0f;
         
@@ -105,7 +105,7 @@ SelectedGame dvd_update(Dvd* d) {
 
     switch (d->state) {
         case GameState_Help: 
-            dvd_draw_help(d);
+            dvd_draw_help();
             return Selected_DVD;
         case GameState_Running: goto update_dvd;
         case GameState_Paused: goto draw_dvd;

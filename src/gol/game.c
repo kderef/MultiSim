@@ -17,6 +17,7 @@
 
 INCBIN(bolus, "../assets/bolus.png");
 
+/* some aliases */
 #define ThemeStyle GolThemeStyle
 #define Theme GolTheme
 #define Cell GolCell
@@ -48,6 +49,7 @@ GameOfLife gol_new() {
     GameOfLife gol = {0};
     gol.update_frame_cap = GOL_DEFAULT_UPDATE_CAP;
     gol.universe = universe_new(GOL_GRID_W, GOL_GRID_H);
+
     Image bolus_png = LoadImageFromMemory(".png", bolus_data, bolus_size);
     gol.bolus = LoadTextureFromImage(bolus_png);
     UnloadImage(bolus_png);
@@ -73,12 +75,12 @@ bool game_of_life_screen_size_changed(GameOfLife* gol) {
     return changed;
 }
 
+static inline
 SelectedGame gol_update(GameOfLife* gol) {
     static float dt;
     static bool size_changed;
     static int key, scrollwheel_move;
     static ThemeStyle theme_style;
-    static char buffer[512];
     // dt shit
     static bool draw_update_time,
         mouse_left_down, mouse_right_down;
@@ -264,8 +266,8 @@ SelectedGame gol_update(GameOfLife* gol) {
     }
 
     if (passed_show_scroll_time < 0.6f && draw_update_time) {
-        snprintf(buffer, sizeof buffer, "[UPDATE TIME = %.2fs]", gol->update_frame_cap);
-        DrawTextD(buffer, gol->window_width / 2 - 170, gol->window_height / 2 - 40, 40, theme_style.ac_color);
+        g_sprintf("[UPDATE TIME = %.2fs]", gol->update_frame_cap);
+        DrawTextD(global_text_buf, gol->window_width / 2 - 170, gol->window_height / 2 - 40, 40, theme_style.ac_color);
     } else {
         passed_show_scroll_time = 0.0f;
         draw_update_time = false;

@@ -18,22 +18,24 @@ typedef struct Selector {
     Minesweeper minesweeper;
 
     SelectedGame selected;
-    GameState state;
 } Selector;
 
-Selector selector_new() {
-    Selector s;
-    s.gol = gol_new();
-    s.dvd = dvd_new();
-    s.pong = pong_new();
-    s.minesweeper = minesweeper_new();
-    s.selected = Selected_None;
+// the global selector, used in the selector_update() method.
+// intialized upon selector_init()
+static Selector _static_selector;
+
+// intialize _static_selector
+void selector_init(void) {
+    _static_selector.gol = gol_new();
+    _static_selector.dvd = dvd_new();
+    _static_selector.pong = pong_new();
+    _static_selector.minesweeper = minesweeper_new();
+    _static_selector.selected = Selected_None;
 
     GuiLoadStyleDark();
-    
-    return s;
 }
 
+// show the title screen and check if a button is pressed
 static inline SelectedGame title_screen() {
     static int screen_x_center, screen_y_center, button_x;
 
@@ -61,7 +63,7 @@ static inline SelectedGame title_screen() {
     GuiDrawText("By Kian (kn-ht)", rect(0, global_screen_height - 20, 200, 20), TEXT_ALIGN_LEFT, GRAY);
 
     // draw the buttons
-    button_x = screen_x_center * 0.5;
+    button_x = screen_x_center / 2;
 
     if (GuiButton(rect(button_x, screen_y_center - BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Game of Life")) {
         return Selected_GOL;
@@ -79,36 +81,37 @@ static inline SelectedGame title_screen() {
     return Selected_None;
 }
 
-void selector_update(Selector* s) {
+// updates the current selected game
+void selector_update(void) {
     static SelectedGame next_game;
 
     global_screen_width = GetScreenWidth();
     global_screen_height = GetScreenHeight();
 
-    switch (s->selected) {
+    switch (_static_selector.selected) {
         case Selected_None: {
             next_game = title_screen();
         } break;
         case Selected_GOL: {
-            next_game = gol_update(&(s->gol));
+            next_game = gol_update(&(_static_selector.gol));
         } break;
         case Selected_DVD: {
-            next_game = dvd_update(&(s->dvd));
+            next_game = dvd_update(&(_static_selector.dvd));
         } break;
         case Selected_PONG: {
-            next_game = pong_update(&(s->pong));
+            next_game = pong_update(&(_static_selector.pong));
         } break;
         case Selected_MINESWEEPER: {
-            next_game = minesweeper_update(&(s->minesweeper));
+            next_game = minesweeper_update(&(_static_selector.minesweeper));
         } break;
     }
 
     if (global_show_fps) DrawTextD(TextFormat("FPS: %d", GetFPS()), global_screen_width - 130, 0, 33.0, GOLD);
     EndDrawing();
 
-    if (next_game != s->selected) {
+    if (next_game != _static_selector.selected) {
         SetWindowTitle(selected_get_window_title(next_game));
-        s->selected = next_game;
+        _static_selector.selected = next_game;
     }
 }
 

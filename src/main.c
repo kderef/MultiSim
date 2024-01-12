@@ -33,10 +33,10 @@ int main(void) {
 #endif
 
     // the selector manages all the games and renders the title screen
-    Selector selector = selector_new();
+    selector_init();
 
     while (!WindowShouldClose()) {
-        selector_update(&selector);
+        selector_update();
     }
 
     CloseWindow();
