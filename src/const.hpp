@@ -37,6 +37,25 @@ constexpr T max(T a, T b) {
     return (a > b)? a : b;
 }
 
+template<typename T>
+constexpr Color color(T r, T g, T b) {
+    return (Color){
+        .r = static_cast<uint8_t>(r),
+        .g = static_cast<uint8_t>(g),
+        .b = static_cast<uint8_t>(b),
+        .a = (uint8_t)255
+    };
+}
+
+constexpr Color color(uint32_t hex) {
+    return (Color) {
+        .r = static_cast<uint8_t>((hex >> 24) & 0xFF),
+        .g = static_cast<uint8_t>((hex >> 16) & 0xFF),
+        .b = static_cast<uint8_t>((hex >> 8) & 0xFF),
+        .a = (uint8_t)255
+    };
+}
+
 /* GOL */
 constexpr int GOL_SCALE = 16;
 constexpr int WINDOW_W = 800;

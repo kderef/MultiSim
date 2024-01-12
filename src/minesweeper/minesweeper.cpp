@@ -4,8 +4,11 @@
 #include <stdlib.h>
 #include "../const.hpp"
 #include "../gamestate.hpp"
+#include "raylib.h"
 
 namespace NMinesweeper {
+    constexpr Color BACKGROUND_COLOR = color(); 
+
     enum Cell : u8 {
         Empty = 0,
         Flagged,
@@ -34,6 +37,8 @@ namespace NMinesweeper {
 
         void draw() {
             // TODO
+            BeginDrawing();
+            ClearBackground(BACKGROUND_COLOR);
         }
     };
 }

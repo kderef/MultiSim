@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "const.hpp"
+#include <stdlib.h>
 
 enum SelectedGame : u8 {
     Selected_None = 0,
