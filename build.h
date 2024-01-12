@@ -31,7 +31,7 @@ int run_cmd(const char* command) {
 // the C compiler to use
 #ifndef CC
 #ifdef __APPLE__
-#define CC "clang"
+#define CC "clang++"
 #else
 #define CC "g++"
 #endif
@@ -39,7 +39,7 @@ int run_cmd(const char* command) {
 
 // generic C compiler flags
 #ifndef CFLAGS
-#define CFLAGS " -lm -Wall -I include/ -nodefaultlibs -fno-exceptions "
+#define CFLAGS " -lm -Wall -I include/ -nodefaultlibs -fno-exceptions -std=c++20 "
 #endif
 
 // for release mode
@@ -64,7 +64,7 @@ int run_cmd(const char* command) {
 // raylib linking flags
 #ifndef RAYFLAGS
 #define RAYFLAGS \
-    " -D_GNU_SOURCE -std=gnu99 "\
+    " -D_GNU_SOURCE "\
     "-DGL_SILENCE_DEPRECATION=199309L "\
     "-I include/external/glfw/include "
 #endif

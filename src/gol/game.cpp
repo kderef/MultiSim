@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 #include <math.h>
-#include <iostream>
-
-using std::min;
-using std::max;
 
 #include "raylib.h"
 #include "raymath.h"
@@ -15,6 +11,10 @@ using std::max;
 #include "theme.cpp"
 #include "../ui/font.c"
 #include "../assets.h"
+
+using GOL_Theme::Theme;
+using GOL_Theme::theme_cycle;
+using GOL_Theme::ThemeStyle;
 
 //! The general game code. Things such as rendering and state management
 //! are done in here.
@@ -25,7 +25,6 @@ private:
     bool size_changed;
     int key, scrollwheel_move;
     ThemeStyle theme_style;
-    char buffer[512];
     // dt shit
     bool draw_update_time, mouse_left_down, mouse_right_down;
     float passed_time;
@@ -45,8 +44,7 @@ public:
     Theme prev_theme;
     uint64_t iterations;
 
-    GameOfLife() {
-        universe = Universe(GOL_GRID_W, GOL_GRID_H);
+    GameOfLife() {;
         state = GameState_Paused;
         window_width = 0;
         window_height = 0;
@@ -54,8 +52,8 @@ public:
         mouse_pos = vec2(0, 0);
         update_frame_cap = GOL_DEFAULT_UPDATE_CAP;
 
-        theme = Theme_Default;
-        prev_theme = Theme_Gruvbox;
+        theme = Theme::Default;
+        prev_theme = Theme::Gruvbox;
         iterations = 0;
     }
 
@@ -190,7 +188,7 @@ public:
         ClearBackground(theme_style.bg_color);
 
         switch (theme) {
-            case Theme_Midnight: {
+            case Theme::Midnight: {
                 static Color midnight_fg_color = {
                     .r = 0,
                     .g = 0,
@@ -230,7 +228,7 @@ public:
                     }
                 }
             } break;
-            case Theme_Bolus: {
+            case Theme::Bolus: {
                 for (uint32_t y = 0; y < universe.height; y++) {
                     for (uint32_t x = 0; x < universe.width; x++) {
                         if (universe.get(x, y)) {
@@ -262,8 +260,8 @@ public:
         }
 
         if (passed_show_scroll_time < 0.6f && draw_update_time) {
-            snprintf(buffer, sizeof buffer, "[UPDATE TIME = %.2fs]", update_frame_cap);
-            DrawTextD(buffer, window_width / 2 - 170, window_height / 2 - 40, 40, theme_style.ac_color);
+            g_sprintf("[UPDATE TIME = %.2fs]", update_frame_cap);
+            DrawTextD(global_text_buf, window_width / 2 - 170, window_height / 2 - 40, 40, theme_style.ac_color);
         } else {
             passed_show_scroll_time = 0.0f;
             draw_update_time = false;

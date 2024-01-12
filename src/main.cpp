@@ -26,8 +26,11 @@ int main(void) {
 
     // initialization of bundled binary files
     assets_load();
+
+#ifndef __APPLE__
     load_window_icon();
     SetWindowIcon(window_icon);
+#endif
 
     // the selector manages all the games and renders the title screen
     Selector selector;
@@ -38,7 +41,10 @@ int main(void) {
 
     CloseWindow();
 
+#ifndef __APPLE__
     unload_window_icon();
+#endif
+
     assets_unload();
 
     return 0;

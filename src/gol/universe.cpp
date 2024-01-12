@@ -3,13 +3,16 @@
 
 //! Implementation of the 'universe' of cells.
 //! AKA a dynamically sized flat array that stores the state of all the cells.
-//! NOTE sizeof(Cell) is omitted in pointer arithmetic because it is of type _Bool,
+//! NOTE sizeof(Cell) is omitted in pointer arithmetic because it is of type bool,
 //! which has a size of 1 byte.
 
 #include "raylib.h"
 #include "cell.cpp"
 #include "../gamestate.hpp"
 #include "../const.hpp"
+
+#include <stdlib.h>
+#include <memory.h>
 
 struct Universe {
 private:
@@ -21,20 +24,17 @@ public:
     size_t height;
     size_t len;
 
-    Universe() {
-        width = GOL_GRID_W;
-        height = GOL_GRID_H;
-        len = width * height;
-        cells = (Cell*) calloc(len, sizeof(Cell));
-        cells_copy = (Cell*) calloc(len, sizeof(Cell));
-    }
-    Universe(size_t init_width, size_t init_height) {
-        width = init_width;
-        height = init_height;
-        len = width * height;
+    Universe() :
+        cells(static_cast<Cell*>(calloc(GOL_GRID_W * GOL_GRID_H, sizeof(Cell)))),
+        cells_copy(static_cast<Cell*>(calloc(GOL_GRID_W * GOL_GRID_H, sizeof(Cell)))),
+        width(GOL_GRID_W),
+        height(GOL_GRID_H),
+        len(GOL_GRID_W * GOL_GRID_H)
+    {}
 
-        cells = (Cell*) calloc(len, sizeof(Cell));
-        cells_copy = (Cell*) calloc(width * height, sizeof(Cell));
+    ~Universe() {
+        free(cells);
+        free(cells_copy);
     }
 
     void fill(Cell with) {
@@ -50,8 +50,7 @@ public:
     }
 
     void invert() {
-        for (size_t i = 0; i < len; i++)
-            cells[i] = !(cells[i]);
+        for (size_t i = 0; i < len; i++) cells[i] = !(cells[i]);
     }
 
     void fill_random() {
@@ -111,7 +110,7 @@ public:
                 cells_copy[y * width + x] = cell_next_iteration(cell_state, neighbours);
             }
         }
-
+        memcpy(cells, cells_copy, len);
     }
 };
 

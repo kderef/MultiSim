@@ -2,7 +2,7 @@
 #define CELL_H_
 
 //! Definition of the type Cell, which makes up the grid.
-//! This is defined as a typedef instead of enum for size optimization, _Bool = 1 byte.
+//! This is defined as a typedef instead of enum for size optimization, bool = 1 byte.
 
 typedef bool Cell;
 #define Alive true

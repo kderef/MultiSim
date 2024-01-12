@@ -36,7 +36,6 @@ public:
     float dt;
     float fixed_paddle_speed;
     float line_x, score_y;
-    char buffer[128];
 
     Pong() {
         window_size = vec2(GetScreenWidth(), GetScreenHeight());
@@ -123,15 +122,15 @@ public:
 
         DrawLine(line_x, window_size.y, line_x, 0.0f, DARKGRAY);
         
-        snprintf(buffer, sizeof buffer, "%u", score.left);
+        g_sprintf("%u", score.left);
         DrawTextD(
-            buffer, line_x - 75.0,
+            global_text_buf, line_x - 75.0,
             score_y,
             50.0, GRAY
         );
-        snprintf(buffer, sizeof buffer, "%u", score.right);
+        g_sprintf("%u", score.right);
         DrawTextD(
-            buffer, line_x + 50.0,
+            global_text_buf, line_x + 50.0,
             score_y,
             50.0, GRAY
         );

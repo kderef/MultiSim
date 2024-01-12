@@ -27,6 +27,16 @@ constexpr Rectangle rect(T x, T y, T w, T h) {
     };
 }
 
+template<typename T>
+constexpr T min(T a, T b) {
+    return (a < b)? a : b;
+}
+
+template<typename T>
+constexpr T max(T a, T b) {
+    return (a > b)? a : b;
+}
+
 /* GOL */
 constexpr int GOL_SCALE = 16;
 constexpr int WINDOW_W = 800;

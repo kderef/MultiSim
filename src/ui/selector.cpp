@@ -27,13 +27,12 @@ public:
     SelectedGame selected;
     GameState state;
 
-    Selector() {
-        gol = GameOfLife();
-        dvd = Dvd();
-        pong = Pong();
-        state = GameState_Help;
-        selected = Selected_None;
-
+    Selector() :
+        gol(),
+        dvd(),
+        pong(),
+        selected(Selected_None)
+    {
         GuiLoadStyleDark();
     }
 
