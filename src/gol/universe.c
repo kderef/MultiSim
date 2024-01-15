@@ -24,10 +24,10 @@ typedef struct Universe {
 
 Universe universe_new(size_t init_width, size_t init_height) {
     Universe uvs;
-    uvs.width = init_width;
+    uvs.width  = init_width;
     uvs.height = init_height;
-    uvs.size = uvs.width * uvs.height;
-    uvs.cells = (Cell*) calloc(uvs.size, sizeof(Cell));
+    uvs.size   = uvs.width * uvs.height;
+    uvs.cells      = (Cell*) calloc(uvs.size, sizeof(Cell));
     uvs.cells_copy = (Cell*) calloc(uvs.size, sizeof(Cell));
 
     return uvs;
@@ -49,7 +49,7 @@ Cell universe_get(Universe* uvs, size_t x, size_t y) {
 void universe_fill(Universe* uvs, Cell with) {
     memset(uvs->cells, with, uvs->size);
 }
-
+ 
 void universe_invert(Universe* uvs) {
     for (size_t i = 0; i < uvs->size; i++) uvs->cells[i] = !(uvs->cells[i]);
 }
@@ -63,23 +63,26 @@ void universe_fill_random(Universe* uvs) {
 
 void universe_resize(Universe* uvs, size_t new_width, size_t new_height) {
     if (new_width <= uvs->width && new_height <= uvs->height) return;
-    
-    uvs->width = (new_width + GOL_SCALE - 1) / GOL_SCALE * GOL_SCALE;
-    uvs->height = (new_height + GOL_SCALE - 1) / GOL_SCALE * GOL_SCALE;
-    uvs->size = new_width * new_height;
 
+    size_t to_width  = (new_width  + GOL_SCALE - 1) / GOL_SCALE * GOL_SCALE;
+    size_t to_height = (new_height + GOL_SCALE - 1) / GOL_SCALE * GOL_SCALE;
+    size_t to_size = to_width * to_height;
+
+    free(uvs->cells_copy);
+    uvs->cells_copy = (Cell*) calloc(to_size, sizeof(Cell));
     memcpy(uvs->cells_copy, uvs->cells, uvs->size);
-    uvs->cells = (Cell*) realloc(uvs->cells, uvs->size);
-    memset(uvs->cells, 0, uvs->size);
-    memcpy(uvs->cells, uvs->cells_copy, uvs->size);
 
-    for (size_t y = 0; y < new_height; y++) {
-        for (size_t x = 0; x < new_width; x++) {
-            const size_t idx = y * uvs->width + x;
-            uvs->cells[idx] = uvs->cells_copy[idx];
+    free(uvs->cells);
+    uvs->cells = (Cell*) calloc(to_size, sizeof(Cell));
+
+    for (size_t y = 0; y < min(to_height, new_height); y++) {
+        for (size_t x = 0; x < min(to_width, new_width); x++) {
+            uvs->cells[y * uvs->width + x] = uvs->cells_copy[y * to_width + x];
         }
     }
-    uvs->cells_copy = (Cell*) realloc(uvs->cells_copy, uvs->size);
+    uvs->width = to_width;
+    uvs->height = to_height;
+    uvs->size = to_size;
 }
 
 void universe_update_cells(Universe* uvs) {
@@ -87,7 +90,6 @@ void universe_update_cells(Universe* uvs) {
 
     static u8 neighbours;
     static Cell cell_state;
-
     for (size_t y = 0; y < uvs->height; y++) {
         for (size_t x = 0; x < uvs->width; x++) {
             neighbours = 0;

@@ -32,11 +32,11 @@ Dvd dvd_new() {
     UnloadImage(logo_png);
 
     d.logo_size = vec2(d.logo.width, d.logo.height);
-    d.velocity = vec2(250, 250);
-    d.inverted = true;
-    d.rainbow = true;
-    d.position = vec2(
-        GetRandomValue(0, GetScreenWidth() - d.logo.width),
+    d.velocity  = vec2(250, 250);
+    d.inverted  = true;
+    d.rainbow   = true;
+    d.position  = vec2(
+        GetRandomValue(0, GetScreenWidth()  - d.logo.width),
         GetRandomValue(0, GetScreenHeight() - d.logo.height)
     );
     return d;
@@ -48,8 +48,8 @@ void dvd_deinit(Dvd* d) {
 
 static inline void dvd_set_random_pos(Dvd* d) {
     d->position = vec2(
-        GetRandomValue(0, global_screen_width - d->logo.width),
-        GetRandomValue(0, global_screen_height - d->logo.height)
+        GetRandomValue(0, global_state.screen_w - d->logo.width),
+        GetRandomValue(0, global_state.screen_h - d->logo.height)
     );
 }
 
@@ -95,7 +95,7 @@ SelectedGame dvd_update(Dvd* d) {
             d->state = (d->state == GameState_Running)? GameState_Paused : GameState_Running;
         } break;
         case KEY_F5: {
-            global_show_fps = !global_show_fps;
+            global_state.show_fps = !global_state.show_fps;
         } break;
         default: {}
     }
@@ -122,24 +122,23 @@ update_dvd:
             d->position,
             (Vector2){0, 0},
             Vector2Subtract(
-                vec2(global_screen_width, global_screen_height),
+                vec2(global_state.screen_w, global_state.screen_h),
                 d->logo_size
             )
         )
     );
 
     if (
-        d->position.x + d->logo_size.x >= global_screen_width ||
+        d->position.x + d->logo_size.x >= global_state.screen_w ||
         d->position.x <= 0
     ) d->velocity.x *= -1;
     
-    if (d->position.y + d->logo_size.y >= global_screen_height ||
+    if (d->position.y + d->logo_size.y >= global_state.screen_h ||
         d->position.y <= 0
     ) d->velocity.y *= -1;
 
     draw_dvd: {
-        static Color tint;
-        tint = d->rainbow?
+        Color tint = d->rainbow?
             d->inverted?
                 ColorFromHSV(d->passed_time * 10.0f, 1.0, 1.0) :
                 ColorFromHSV(d->passed_time * 10.0, 0.6, 1.0)
@@ -148,7 +147,7 @@ update_dvd:
         BeginDrawing();
         ClearBackground((d->inverted)? BLACK : RAYWHITE);
         if (d->state == GameState_Paused) {
-            DrawTextD("[SPACE TO UNPAUSE]", 3, global_screen_height - FONT_S, FONT_S, GREEN);
+            DrawTextD("[SPACE TO UNPAUSE]", 3, global_state.screen_h - FONT_S, FONT_S, GREEN);
         }
         DrawTexture(
             d->logo,

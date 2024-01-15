@@ -23,9 +23,17 @@ typedef enum GameState {
 
 #define GLOBAL_TEXT_BUF_SIZE (256 + 1)
 
-static bool global_show_fps = false;
-static int global_screen_width = 0;
-static int global_screen_height = 0;
+typedef struct GlobalState {
+    bool show_fps;
+    int screen_w;
+    int screen_h;
+    Vector2 mouse_pos;
+    bool left_mouse_down;
+    bool right_mouse_down;
+} GlobalState;
+
+static GlobalState global_state = {0};
+
 static char global_text_buf[GLOBAL_TEXT_BUF_SIZE];
 
 // global snprintf to global_text_buf

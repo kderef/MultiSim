@@ -31,9 +31,9 @@
     (Color){((H) >> 24) & 0xFF, ((H) >> 16) & 0xFF, ((H) >> 8) & 0xFF, (uint8_t)255}
 
 /* GOL */
-#define GOL_SCALE  16
-#define WINDOW_W   800
-#define WINDOW_H   648
+#define GOL_SCALE  14
+#define WINDOW_W   (GOL_SCALE * 57)
+#define WINDOW_H   (GOL_SCALE * 46) 
 
 #define GOL_STATUS_BAR_HEIGHT 40
 

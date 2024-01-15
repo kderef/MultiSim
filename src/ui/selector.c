@@ -9,7 +9,6 @@
 #include "../dvd/dvd.c"
 #include "../pong/pong.c"
 #include "../minesweeper/minesweeper.c"
-#include <time.h>
 
 typedef struct Selector {
     GameOfLife gol;
@@ -42,13 +41,10 @@ static inline SelectedGame title_screen() {
     #define BUTTONS_SPACING 80
     #define BUTTON_HEIGHT 50
 
-    global_screen_width = GetScreenWidth();
-    global_screen_height = GetScreenHeight();
+    screen_x_center = global_state.screen_w  / 2;
+    screen_y_center = global_state.screen_h  / 2;
 
-    screen_x_center = global_screen_width / 2;
-    screen_y_center = global_screen_height / 2;
-
-    if (IsKeyPressed(KEY_F5)) global_show_fps = !global_show_fps;
+    if (IsKeyPressed(KEY_F5)) global_state.show_fps = !global_state.show_fps;
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -60,7 +56,7 @@ static inline SelectedGame title_screen() {
         100.0, RAYWHITE
     );
 
-    GuiDrawText("By Kian (kn-ht)", rect(0, global_screen_height - 20, 200, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("By Kian (kn-ht)", rect(0, global_state.screen_h - 20, 200, 20), TEXT_ALIGN_LEFT, GRAY);
 
     // draw the buttons
     button_x = screen_x_center / 2;
@@ -85,8 +81,11 @@ static inline SelectedGame title_screen() {
 void selector_update(void) {
     static SelectedGame next_game;
 
-    global_screen_width = GetScreenWidth();
-    global_screen_height = GetScreenHeight();
+    global_state.screen_w = GetScreenWidth();
+    global_state.screen_h = GetScreenHeight();
+    global_state.left_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    global_state.right_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+    global_state.mouse_pos = GetMousePosition();
 
     switch (_static_selector.selected) {
         case Selected_None: {
@@ -106,7 +105,7 @@ void selector_update(void) {
         } break;
     }
 
-    if (global_show_fps) DrawTextD(TextFormat("FPS: %d", GetFPS()), global_screen_width - 130, 0, 33.0, GOLD);
+    if (global_state.show_fps) DrawTextD(TextFormat("FPS: %d", GetFPS()), global_state.screen_h - 130, 0, 33.0, GOLD);
     EndDrawing();
 
     if (next_game != _static_selector.selected) {

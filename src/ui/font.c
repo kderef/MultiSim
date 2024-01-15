@@ -3,9 +3,9 @@
 
 #include "raylib.h"
 #include "../const.h"
+#include <stdlib.h>
 
 INCBIN(default_font, "assets/CnC-RedAlert.ttf");
-
 
 static Font font;
 

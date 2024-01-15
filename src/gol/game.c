@@ -66,11 +66,11 @@ void game_of_life_deinit(GameOfLife* ptr) {
     universe_deinit(&(ptr->universe));
 }
 
-bool game_of_life_screen_size_changed(GameOfLife* gol) {
-    bool changed = global_screen_width != gol->window_width || global_screen_height != gol->window_height;
+bool gol_screen_size_changed(GameOfLife* gol) {
+    bool changed = global_state.screen_w != gol->window_width || global_state.screen_w != gol->window_height;
 
-    gol->window_width = global_screen_width;
-    gol->window_height = global_screen_height;
+    gol->window_width  = global_state.screen_w;
+    gol->window_height = global_state.screen_h;
 
     return changed;
 }
@@ -94,13 +94,13 @@ SelectedGame gol_update(GameOfLife* gol) {
     passed_show_scroll_time += dt;
 
     // handle window size
-    size_changed = game_of_life_screen_size_changed(gol);
+    size_changed = gol_screen_size_changed(gol);
 
     if (size_changed) {
         int new_w = gol->window_width / GOL_SCALE;
         int new_h = (gol->window_height - GOL_STATUS_BAR_HEIGHT) / GOL_SCALE;
 
-        universe_resize(&(gol->universe), new_w, new_h);
+        universe_resize(&(gol->universe), (size_t)new_w, (size_t)new_h);
     }
 
     // handle mouse position
@@ -154,14 +154,9 @@ SelectedGame gol_update(GameOfLife* gol) {
         case KEY_SPACE: {
             gol_state_toggle(gol);
         } break;
-        case KEY_ENTER:
-        case KEY_KP_ENTER: {
-            if (gol->state == GameState_Help)
-                gol->state = GameState_Running;
-        } break;
         case KEY_ESCAPE: return Selected_None;
         case KEY_F5: {
-            global_show_fps = !global_show_fps;
+            global_state.show_fps = !global_state.show_fps;
         } break;
         case KEY_F11: {
             ToggleFullscreen();
@@ -263,8 +258,7 @@ SelectedGame gol_update(GameOfLife* gol) {
                 }
             }
         }
-    }
-
+    
     if (passed_show_scroll_time < 0.6f && draw_update_time) {
         g_sprintf("[UPDATE TIME = %.2fs]", gol->update_frame_cap);
         DrawTextD(global_text_buf, gol->window_width / 2 - 170, gol->window_height / 2 - 40, 40, theme_style.ac_color);
@@ -274,14 +268,14 @@ SelectedGame gol_update(GameOfLife* gol) {
     }
 
     GuiDrawRectangle(
-        rect(0, global_screen_height - GOL_STATUS_BAR_HEIGHT, global_screen_width, GOL_STATUS_BAR_HEIGHT),
+        rect(0, global_state.screen_h - GOL_STATUS_BAR_HEIGHT, global_state.screen_w, GOL_STATUS_BAR_HEIGHT),
         1, theme_style.fg_color, theme_style.bg_color
     );
 
     #define ICON_SIZE 38
     #define ICON_PADDING 1
 
-    const int icon_y = global_screen_height - ICON_SIZE - ICON_PADDING;
+    const int icon_y = global_state.screen_h - ICON_SIZE - ICON_PADDING;
     int icon_padding_x = ICON_PADDING;
 
     if (GuiButton(rect(icon_padding_x, icon_y, ICON_SIZE, ICON_SIZE), "#129#")) {
