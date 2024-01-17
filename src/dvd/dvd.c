@@ -55,12 +55,12 @@ static inline void dvd_set_random_pos(Dvd* d) {
 
 static inline void dvd_draw_help() {
     static float spacing;
-    spacing = 0.0f;
+    spacing = FONT_M;
         
     BeginDrawing();
     ClearBackground(BLACK);
 
-    DrawTextD("DvD controls", 3, 0, FONT_XL, GREEN);
+    DrawTextD("DvD controls", 3, FONT_M, FONT_XL, GREEN);
     DrawTextD("H         - toggle help mode", 3, spacing += FONT_XL, FONT_M, RAYWHITE);
     DrawTextD("I          - invert the colors", 3, spacing += FONT_M, FONT_M, RAYWHITE);
     DrawTextD("R         - randomize the DvD logo position", 3, spacing += FONT_M, FONT_M, RAYWHITE);

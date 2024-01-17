@@ -35,7 +35,7 @@
 #define SUPPORT_MODULE_RSHAPES          1
 #define SUPPORT_MODULE_RTEXTURES        1
 #define SUPPORT_MODULE_RTEXT            1       // WARNING: It requires SUPPORT_MODULE_RTEXTURES to load sprite font textures
-#define SUPPORT_MODULE_RMODELS          1
+#define SUPPORT_MODULE_RMODELS          0
 #define SUPPORT_MODULE_RAUDIO           1
 
 //------------------------------------------------------------------------------------
@@ -44,7 +44,7 @@
 // Camera module is included (rcamera.h) and multiple predefined cameras are available: free, 1st/3rd person, orbital
 #define SUPPORT_CAMERA_SYSTEM           1
 // Gestures module is included (rgestures.h) to support gestures detection: tap, hold, swipe, drag
-#define SUPPORT_GESTURES_SYSTEM         1
+#define SUPPORT_GESTURES_SYSTEM         0
 // Include pseudo-random numbers generator (rprand.h), based on Xoshiro128** and SplitMix64
 #define SUPPORT_RPRAND_GENERATOR        1
 // Mouse gestures are directly mapped like touches and processed by gestures system
@@ -164,9 +164,9 @@
 //#define SUPPORT_FILEFORMAT_SVG      1
 
 // Support image export functionality (.png, .bmp, .tga, .jpg, .qoi)
-#define SUPPORT_IMAGE_EXPORT            1
+#define SUPPORT_IMAGE_EXPORT            0
 // Support procedural image generation functionality (gradient, spot, perlin-noise, cellular)
-#define SUPPORT_IMAGE_GENERATION        1
+#define SUPPORT_IMAGE_GENERATION        0
 // Support multiple image editing functions to scale, adjust colors, flip, draw on images, crop...
 // If not defined, still some functions are supported: ImageFormat(), ImageCrop(), ImageToPOT()
 #define SUPPORT_IMAGE_MANIPULATION      1
@@ -177,9 +177,9 @@
 //------------------------------------------------------------------------------------
 // Default font is loaded on window initialization to be available for the user to render simple text
 // NOTE: If enabled, uses external module functions to load default raylib font
-#define SUPPORT_DEFAULT_FONT            1
+#define SUPPORT_DEFAULT_FONT            0
 // Selected desired font fileformats to be supported for loading
-#define SUPPORT_FILEFORMAT_FNT          1
+#define SUPPORT_FILEFORMAT_FNT          0
 #define SUPPORT_FILEFORMAT_TTF          1
 
 // Support text management functions

@@ -28,6 +28,7 @@ typedef struct GlobalState {
     int screen_w;
     int screen_h;
     Vector2 mouse_pos;
+    Vector2 mouse_delta;
     bool left_mouse_down;
     bool right_mouse_down;
 } GlobalState;

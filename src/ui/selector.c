@@ -3,12 +3,15 @@
 
 #include "raygui_incl.h"
 #include "raygui_style_dark.h"
+#include "splashtext.c"
 #include "../const.h"
 #include "../gol/game.c"
 #include "../gamestate.h"
 #include "../dvd/dvd.c"
 #include "../pong/pong.c"
 #include "../minesweeper/minesweeper.c"
+
+INCBIN(menu_img, "../assets/menu-bg.png");
 
 typedef struct Selector {
     GameOfLife gol;
@@ -17,6 +20,7 @@ typedef struct Selector {
     Minesweeper minesweeper;
 
     SelectedGame selected;
+    Texture2D background;
 } Selector;
 
 // the global selector, used in the selector_update() method.
@@ -31,12 +35,23 @@ void selector_init(void) {
     _static_selector.minesweeper = minesweeper_new();
     _static_selector.selected = Selected_None;
 
+    Image bg_img = LoadImageFromMemory(
+        ".png", menu_img_data, menu_img_size
+    );
+    _static_selector.background = LoadTextureFromImage(bg_img);
+    UnloadImage(bg_img);
+
     GuiLoadStyleDark();
 }
 
 // show the title screen and check if a button is pressed
 static inline SelectedGame title_screen() {
     static int screen_x_center, screen_y_center, button_x;
+    static float passed_time;
+    static float text_zoom_offset;
+
+    passed_time = (passed_time > 0.5f)? 0.0f : passed_time + GetFrameTime();
+    text_zoom_offset = SPLASH_TEXT_BASE + sinf(passed_time * 12);
 
     #define BUTTONS_SPACING 80
     #define BUTTON_HEIGHT 50
@@ -48,15 +63,25 @@ static inline SelectedGame title_screen() {
 
     BeginDrawing();
     ClearBackground(BLACK);
+    DrawTextureRec(
+        _static_selector.background, rect(0, 0, global_state.screen_w, global_state.screen_h),
+        vec2(0, 0), WHITE
+    );
 
     DrawTextD(
         "MultiSim",
         screen_x_center - 145,
         50,
-        100.0, RAYWHITE
+        100.0, LIGHTGRAY
+    );
+
+    DrawTextPro(
+        font, splash_text, vec2(screen_x_center + 140, 120),
+        splash_text_len_half, 340.0, text_zoom_offset, 1.0, GOLD
     );
 
     GuiDrawText("By Kian (kn-ht)", rect(0, global_state.screen_h - 20, 200, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("Version " VERSION, rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
 
     // draw the buttons
     button_x = screen_x_center / 2;
@@ -86,6 +111,7 @@ void selector_update(void) {
     global_state.left_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     global_state.right_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
     global_state.mouse_pos = GetMousePosition();
+    global_state.mouse_delta = GetMouseDelta();
 
     switch (_static_selector.selected) {
         case Selected_None: {
@@ -105,13 +131,20 @@ void selector_update(void) {
         } break;
     }
 
-    if (global_state.show_fps) DrawTextD(TextFormat("FPS: %d", GetFPS()), global_state.screen_h - 130, 0, 33.0, GOLD);
+    if (global_state.show_fps) DrawTextD(TextFormat("FPS: %d", GetFPS()), 3, 0, 33.0, GOLD);
     EndDrawing();
 
     if (next_game != _static_selector.selected) {
         SetWindowTitle(selected_get_window_title(next_game));
         _static_selector.selected = next_game;
     }
+}
+
+void selector_deinit(void) {
+    UnloadTexture(_static_selector.background);
+    game_of_life_deinit(&_static_selector.gol);
+    dvd_deinit(&_static_selector.dvd);
+    pong_deinit(&_static_selector.pong);
 }
 
 #endif

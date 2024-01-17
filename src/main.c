@@ -1,3 +1,5 @@
+#define VERSION "2.0.3"
+
 #include "raylib.h"
 #include "const.h"
 
@@ -7,6 +9,7 @@
 
 #include "ui/selector.c"
 #include "ui/windowicon.c"
+#include "ui/splashtext.c"
 
 int main(void) {
     // seed random
@@ -25,14 +28,20 @@ int main(void) {
     InitWindow(WINDOW_W, WINDOW_H, selected_get_window_title(Selected_None));
     SetExitKey(KEY_NULL);
     SetWindowMinSize(WINDOW_W, WINDOW_H);
+    SetTargetFPS(
+        GetMonitorRefreshRate(
+            GetCurrentMonitor()
+        ) * 2
+    );
 
     // load the default font (bundled IN exe)
     load_default_font();
 
-    // set the window icon (not needed on MacOS)
-#ifndef __APPLE__
+    // set the window icon
     load_window_icon();
-#endif
+
+    // load the random splash text
+    load_random_splash_text();
 
     // the selector manages all the games and renders the title screen
     selector_init();
@@ -42,7 +51,7 @@ int main(void) {
     }
 
     CloseWindow();
-
+    selector_deinit();
     unload_default_font();
 
     return 0;

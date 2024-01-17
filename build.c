@@ -6,13 +6,11 @@
 
 
 // for easily switching MingW compilation on/off.
-// set to 1 for cross compilation with mingw (replace CC as needed)
-#if 0
+// add -DMINGW when compiling build.c to enable.
+#ifdef MINGW
     #define CC "x86_64-w64-mingw32-gcc"
     #define RESOURCE_COMMAND "x86_64-w64-mingw32-windres winresource/resource.rc -o winresource/resource.o"
-    #define _WIN32 1
-    #define __APPLE__ 0
-    #define __LINUX__ 0
+    #define BUILD_MINGW
 #endif
 
 #include "build.h"

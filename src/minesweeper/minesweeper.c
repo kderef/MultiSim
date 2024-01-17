@@ -36,14 +36,6 @@ void minesweeper_deinit(Minesweeper* ms) {
     free(ms->cells);
 }
 
-SelectedGame minesweeper_update(Minesweeper* ms) {
-    if (IsKeyPressed(KEY_ESCAPE)) return Selected_None;
-
-    (void)ms; // FIXME
-
-    return Selected_MINESWEEPER;
-}
-
 static inline void minesweeper_draw(Minesweeper* ms) {
     (void)ms; // FIXME
 
@@ -51,5 +43,14 @@ static inline void minesweeper_draw(Minesweeper* ms) {
     ClearBackground(MS_BACKGROUND_COLOR);
 }
 
+SelectedGame minesweeper_update(Minesweeper* ms) {
+    if (IsKeyPressed(KEY_ESCAPE)) return Selected_None;
+
+    (void)ms; // FIXME
+
+
+    minesweeper_draw(ms);
+    return Selected_MINESWEEPER;
+}
 
 #endif

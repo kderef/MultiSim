@@ -99,14 +99,14 @@ void universe_update_cells(Universe* uvs) {
                 for (i8 dy = -1; dy <= 1; dy++) {
                     if (dx == 0 && dy == 0) continue;
                     
-                    size_t nx = x + dx;
-                    size_t ny = y + dy;
+                    int nx = x + dx;
+                    int ny = y + dy;
 
                     if (
                         nx >= 0 &&
-                        nx < uvs->width &&
+                        nx < (int)uvs->width &&
                         ny >= 0 &&
-                        ny < uvs->height &&
+                        ny < (int)uvs->height &&
                         universe_get(uvs, nx, ny)
                     ) neighbours += 1;
                 }

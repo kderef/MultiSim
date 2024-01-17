@@ -44,7 +44,7 @@ Pong pong_new() {
 
     p.ball.radius = BALL_RADIUS;
     p.ball.pos = center;
-    p.ball.velocity = BALL_DEFAULT_VELOCITY;
+    p.ball.velocity = BALL_DEFAULT_NEG_VELOCITY; //BALL_DEFAULT_VELOCITY;
     p.score = (Score) {0, 0};
 
     p.paddle_left = rect(
@@ -79,8 +79,9 @@ void pong_deinit(Pong* p) {
     UnloadSound(p->score_sound);
 }
 
-void pong_reset(Pong* p, bool left_scored) {
-    static float paddle_y, abs_vx;
+
+void pong_reset_scored(Pong* p, bool left_scored) {
+    static float paddle_y;
 
     paddle_y = (p->window_size.y / 2) - (PADDLE_HEIGHT / 2);
     p->paddle_right.y = paddle_y;
@@ -92,30 +93,77 @@ void pong_reset(Pong* p, bool left_scored) {
         p->window_size.y / 2
     );
 
-    abs_vx = fabsf(p->ball.velocity.x);
+    p->ball.velocity.x = left_scored? BALL_DEFAULT_V : -BALL_DEFAULT_V;
+    p->ball.velocity.y = GetRandomValue(0, 1)? BALL_DEFAULT_V : -BALL_DEFAULT_V;
 
-    p->ball.velocity.x = left_scored? abs_vx : -abs_vx;
-    p->ball.velocity.y = GetRandomValue(0, 1)? 1.0f : -1.0f;
+    p->countdown_passed = 0.0f;
+
+    if (left_scored) p->score.left++;
+    else p->score.right++;
+}
+
+void pong_reset(Pong* p) {
+    static float paddle_y;
+
+    bool left = GetRandomValue(0, 1);
+
+    paddle_y = (p->window_size.y / 2) - (PADDLE_HEIGHT / 2);
+    p->paddle_right.y = paddle_y;
+    p->paddle_left.y = paddle_y;
+    p->ball.pos = vec2(
+        left?
+            PADDLE_PADDING*2 + PADDLE_WIDTH :
+            p->window_size.x - PADDLE_PADDING*2 - PADDLE_WIDTH,
+        p->window_size.y / 2
+    );
+
+    p->ball.velocity.x = left? BALL_DEFAULT_V : -BALL_DEFAULT_V;
+    p->ball.velocity.y = GetRandomValue(0, 1)? BALL_DEFAULT_V : -BALL_DEFAULT_V;
 
     p->countdown_passed = 0.0f;
 }
 
 static inline void pong_draw_help(Pong* p) {
-    (void)p; // FIXME
-
     BeginDrawing();
     ClearBackground(BLACK);
     // TODO
+
+    GuiDrawRectangle(rect(20, 20, global_state.screen_w - 40, global_state.screen_h - 40), 1, GRAY, color(20, 20, 20));
+    DrawTextD("Pong Help", global_state.screen_w/2 - 60, 40, FONT_L, GOLD);
+
+    GuiDrawText("Left Paddle controls:", rect(50, 150, 200, 20), TEXT_ALIGN_LEFT, GOLD);
+    GuiDrawText("W: up", rect(50, 170, 200, 20), TEXT_ALIGN_LEFT, WHITE);
+    GuiDrawText("A: down", rect(50, 190, 200, 20), TEXT_ALIGN_LEFT, WHITE);
+
+    GuiDrawText("Right paddle controls:", rect(50, 230, 200, 20), TEXT_ALIGN_LEFT, GOLD);
+    GuiDrawText("W: up", rect(50, 250, 200, 20), TEXT_ALIGN_LEFT, WHITE);
+    GuiDrawText("A: down", rect(50, 270, 200, 20), TEXT_ALIGN_LEFT, WHITE);
+
+    const size_t controls_right = global_state.screen_w - 270;
+    GuiDrawText("Global controls:", rect(controls_right, 150, 200, 20), TEXT_ALIGN_LEFT, GOLD);
+    GuiDrawText("R      : reset game", rect(controls_right, 170, 200, 20), TEXT_ALIGN_LEFT, WHITE);
+    GuiDrawText("Space: pause/unpause game", rect(controls_right, 190, 200, 20), TEXT_ALIGN_LEFT, WHITE);
+
+    if (GuiButton(rect(global_state.screen_w/2 - 100, global_state.screen_h - 100, 200, 50), "Exit help")) {
+        p->state = GameState_Running;
+    }
 }
 
 static inline void pong_draw(Pong* p) {
-    static float line_x, score_y;
-    
+    static float line_x, score_y, passed_time = 0.0f;
+    static bool draw_help_btn = false;
+
     BeginDrawing();
     ClearBackground(DARKGRAY);
 
     line_x = p->window_size.x / 2.0f;
     score_y = p->window_size.y / 2.0f - 25.0f;
+
+    passed_time += GetFrameTime();
+
+    if (global_state.mouse_delta.x != 0.0f || global_state.mouse_delta.y != 0.0f) {
+        draw_help_btn = true;
+    }
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -145,10 +193,22 @@ static inline void pong_draw(Pong* p) {
         p->paddle_right,
         RAYWHITE
     );
+
+    if (draw_help_btn && passed_time < 1.5f) {
+        if (GuiButton(
+            rect(global_state.screen_w - ICON_SIZE - 2, 2, ICON_SIZE, ICON_SIZE),
+            "#193#")
+        ) {
+            p->state = GameState_Help;
+        }
+    } else {
+        passed_time = 0.0f;
+        draw_help_btn = false;
+    }
 }
 
 // later defined
-inline void pong_handle_collision(Pong*);
+void pong_handle_collision(Pong*);
 
 SelectedGame pong_update(Pong* p) {
     static float fixed_paddle_speed;
@@ -159,14 +219,11 @@ SelectedGame pong_update(Pong* p) {
     p->dt = GetFrameTime();
 
     if (IsKeyPressed(KEY_ESCAPE)) {
+        if (p->state == GameState_Help) {
+            p->state = GameState_Paused;
+            return Selected_PONG;
+        }
         return Selected_None;
-    }
-    return Selected_PONG; // NOTE remove later :p
-
-    if (IsKeyPressed(KEY_H)) {
-        p->state = (p->state == GameState_Help)? GameState_Running : GameState_Help;
-        pong_draw(p);
-        return Selected_PONG;
     }
 
     if (p->state == GameState_Help) {
@@ -179,7 +236,7 @@ SelectedGame pong_update(Pong* p) {
         p->score.right = 0;
         p->state = GameState_Running;
 
-        pong_reset(p, GetRandomValue(0, 1));
+        pong_reset(p);
     }
     if (IsKeyPressed(KEY_SPACE)) {
         p->state = (p->state == GameState_Running) ? GameState_Paused : GameState_Running;
@@ -255,10 +312,39 @@ SelectedGame pong_update(Pong* p) {
     return Selected_PONG;
 }
 
-inline void pong_handle_collision(Pong* p) {
-    (void)p; // FIXME
-    // TODO
-}
+void pong_handle_collision(Pong* p) {
+    // top of screen / bottom of screen
+    if (p->ball.pos.y <= p->ball.radius || p->ball.pos.y >= global_state.screen_h - p->ball.radius) {
+        p->ball.velocity.y *= -1.1;
+        PlaySound(p->hit_sound);
+    }
 
+    // right scored
+    if (p->ball.pos.x <= 0.0) {
+        pong_reset_scored(p, false);
+        PlaySound(p->score_sound);
+    }
+
+    // left scored
+    else if (p->ball.pos.x >= global_state.screen_w) {
+        pong_reset_scored(p, true);
+        PlaySound(p->score_sound);
+    }
+
+    // left or right paddle
+    Paddle paddle = (p->ball.velocity.x < 0.0)? p->paddle_left : p->paddle_right;
+
+    // collision
+    if (CheckCollisionCircleRec(
+        p->ball.pos, p->ball.radius, paddle
+    )) {
+        if (p->ball.pos.y < paddle.y || p->ball.pos.y > paddle.y + paddle.height) {
+            TraceLog(LOG_WARNING, "ball = (%f, %f), paddle = (%f, %f)", p->ball.pos.x, p->ball.pos.y, paddle.x, paddle.y);
+            p->ball.velocity.y *= -BALL_VY_INCREASE;
+        }
+        p->ball.velocity.x *= -BALL_VX_INCREASE;
+        PlaySound(p->hit_sound);
+    }
+}
 
 #endif

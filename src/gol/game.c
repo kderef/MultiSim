@@ -22,7 +22,7 @@ INCBIN(bolus, "../assets/bolus.png");
 #define Theme GolTheme
 #define Cell GolCell
 
-typedef struct {
+typedef struct GameOfLife {
     Universe universe;
     GameState state;
     float update_frame_cap;
@@ -178,13 +178,12 @@ SelectedGame gol_update(GameOfLife* gol) {
             }
         } break;
         case GameState_Paused: {
-            if (mouse_in_grid) {
-                if (mouse_left_down) {
-                    universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
-                }
-                else if (mouse_right_down) {
-                    universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Dead);
-                }
+            if (!mouse_in_grid) break;
+            if (mouse_left_down) {
+                universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
+            }
+            else if (mouse_right_down) {
+                universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Dead);
             }
         }
         default: {}
@@ -258,6 +257,7 @@ SelectedGame gol_update(GameOfLife* gol) {
                 }
             }
         }
+    }
     
     if (passed_show_scroll_time < 0.6f && draw_update_time) {
         g_sprintf("[UPDATE TIME = %.2fs]", gol->update_frame_cap);

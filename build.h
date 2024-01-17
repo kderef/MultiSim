@@ -77,7 +77,7 @@ int run_cmd(const char* command) {
 #define OUT " -o ./bin/MultiSim "
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(BUILD_MINGW)
 #  define COMPILE_CMD CC CFLAGS IN OUT RAYFLAGS CFLAGS_WIN
 #elif defined(__APPLE__)
 #  define COMPILE_CMD CC CFLAGS IN OUT RAYFLAGS CFLAGS_APPLE
@@ -91,17 +91,19 @@ int build(bool release_mode, const char* program) {
 #elif defined(__LINUX__)
     INFO("target os = Linux");
 #elif defined(__APPLE__)
+    INFO("target os = MacOS");
+#else
     INFO("target os = UNKOWN");
 #endif
 
-    INFO("release mode = %s", release_mode? "TRUE" : "FALSE");
+    INFO("release mode = %s", release_mode? "ON" : "OFF");
     puts("-----------------------------");
 
     if (MKDIR("bin") == 0) {
         INFO("created ./bin/ folder.");
     } else INFO("./bin/ folder already exists.");
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(BUILD_MINGW)
     INFO("running resource command");
     if (run_cmd(RESOURCE_COMMAND) != 0) {
         FATAL("failed to run the resource command");
