@@ -101,7 +101,7 @@ static inline SelectedGame title_screen() {
 
     return Selected_None;
 }
-
+`
 // updates the current selected game
 void selector_update(void) {
     static SelectedGame next_game;
