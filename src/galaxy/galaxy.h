@@ -3,14 +3,13 @@
 
 #include "../gamestate.h"
 #include "raylib.h"
-#include "planet.c"
+#include "player.h"
+
+#define GX_CAMERA_DEFAULT_Y 5.0f
 
 typedef struct Galaxy {
     Camera3D camera;
-    Planet planets[9];
-    Planet sun;
-    Planet earth;
-    Planet moon;
+    Vector3 velocity;
 } Galaxy;
 
 Galaxy galaxy_new(void);

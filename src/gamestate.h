@@ -10,7 +10,8 @@ typedef enum SelectedGame {
     Selected_GOL,
     Selected_DVD,
     Selected_PONG,
-    Selected_GALAXY
+    Selected_GALAXY,
+    Selected_BREAKOUT
 } SelectedGame;
 
 typedef enum GameState {

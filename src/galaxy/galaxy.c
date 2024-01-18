@@ -2,24 +2,23 @@
 #define GALAXY_C
 
 #include "raylib.h"
+#include "rcamera.h"
 #include "galaxy.h"
 #include <stdlib.h>
 
 static bool mouse_disabled = false;
 
 Galaxy galaxy_new(void) {
-    Galaxy g;
-
-    g.sun = planet_sun();
-
-    g.camera = (Camera3D) {
-        .fovy = 90.0,
-        .target = vec3(100, 100, 100),
-        .projection = CAMERA_PERSPECTIVE,
-        .up = vec3(0, 1, 0)
+    return (Galaxy) {
+        .camera = (Camera3D) {
+            .fovy = 90.0,
+            .projection = CAMERA_PERSPECTIVE,
+            .up = vec3(0, 100, 0),
+            .position = vec3(0, GX_CAMERA_DEFAULT_Y, 0),
+            .target = vec3(100, 10, 100)
+        },
+        .velocity = vec3(0, 0, 0)
     };
-
-    return g;
 }
 
 static inline
@@ -32,15 +31,13 @@ void galaxy_draw(Galaxy* g) {
     BeginDrawing();
     ClearBackground(BLACK);
 
-    g_sprintf("Position: (%d, %d)", g->camera.position);
-    DrawTextD(global_text_buf, 0, 3, 20.0, RAYWHITE);
+    g_sprintf("pos: [%.2f, %.2f, %.2f]", g->camera.position.x, g->camera.position.y, g->camera.position.z);
+    DrawTextD(global_text_buf, 0, 23, 30.0, RAYWHITE);
 
     BeginMode3D(g->camera);
-        UpdateCamera(&(g->camera), CAMERA_FREE);
+        UpdateCamera(&(g->camera), CAMERA_FIRST_PERSON);
         DrawGrid(500, 2.0);
-        DrawSphere(
-            g->sun.pos, g->sun.radius, g->sun.color
-        );
+        DrawCube(vec3(100, 10, 100), 100.0, 100.0, 100.0, RED);
 
     EndMode3D();
     
@@ -68,9 +65,10 @@ SelectedGame galaxy_update(Galaxy* g) {
 }
 
 void galaxy_deinit(Galaxy* g) {
-    free(g->planets);
+    if (mouse_disabled) {
+        mouse_disabled = false;
+        DisableCursor();
+    }
 }
-
-
 
 #endif

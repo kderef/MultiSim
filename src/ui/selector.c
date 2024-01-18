@@ -96,7 +96,7 @@ static inline SelectedGame title_screen() {
     if (GuiButton(rect(button_x, screen_y_center + BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Pong")) {
         return Selected_PONG;
     }
-    if (GuiButton(rect(button_x, screen_y_center + 2*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Galaxy")) {
+    if (GuiButton(rect(button_x, screen_y_center + 2*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Galaxy Shooter")) {
         return Selected_GALAXY;
     }
 
