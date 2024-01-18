@@ -11,6 +11,7 @@
 #include "../pong/pong.c"
 #include "../minesweeper/minesweeper.c"
 #include "../galaxy/galaxy.c"
+#include "../breakout/breakout.c"
 
 INCBIN(menu_img, "../assets/menu-bg.png");
 
@@ -19,6 +20,7 @@ typedef struct Selector {
     Dvd dvd;
     Pong pong;
     Galaxy galaxy;
+    Breakout breakout;
 
     SelectedGame selected;
     Texture2D background;
@@ -34,6 +36,7 @@ void selector_init(void) {
     _static_selector.dvd = dvd_new();
     _static_selector.pong = pong_new();
     _static_selector.galaxy = galaxy_new();
+    _static_selector.breakout = breakout_new();
     _static_selector.selected = Selected_None;
 
     Image bg_img = LoadImageFromMemory(
@@ -47,7 +50,7 @@ void selector_init(void) {
 
 // show the title screen and check if a button is pressed
 static inline SelectedGame title_screen() {
-    static int screen_x_center, screen_y_center, button_x;
+    static int screen_x_center, screen_y_center, button_x, button_y;
     static float passed_time;
     static float text_zoom_offset;
 
@@ -85,19 +88,23 @@ static inline SelectedGame title_screen() {
     GuiDrawText("Version " VERSION, rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
 
     // draw the buttons
+    button_y = screen_y_center - BUTTON_HEIGHT - BUTTONS_SPACING;
     button_x = screen_x_center / 2;
 
-    if (GuiButton(rect(button_x, screen_y_center - BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Game of Life")) {
+    if (GuiButton(rect(button_x, button_y, screen_x_center, BUTTON_HEIGHT), "Game of Life")) {
         return Selected_GOL;
     }
-    if (GuiButton(rect(button_x, screen_y_center, screen_x_center, BUTTON_HEIGHT), "DvD Bouncy")) {
+    if (GuiButton(rect(button_x, button_y + BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "DvD Bouncy")) {
         return Selected_DVD;
     }
-    if (GuiButton(rect(button_x, screen_y_center + BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Pong")) {
+    if (GuiButton(rect(button_x, button_y + 2*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Pong")) {
         return Selected_PONG;
     }
-    if (GuiButton(rect(button_x, screen_y_center + 2*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Galaxy Shooter")) {
+    if (GuiButton(rect(button_x, button_y + 3*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "[WIP] Galaxy")) {
         return Selected_GALAXY;
+    }
+    if (GuiButton(rect(button_x, button_y + 4*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "[WIP] Breakout")) {
+        return Selected_BREAKOUT;
     }
 
     return Selected_None;
@@ -130,6 +137,9 @@ void selector_update(void) {
         case Selected_GALAXY: {
             next_game = galaxy_update(&(_static_selector.galaxy));
         } break;
+        case Selected_BREAKOUT: {
+            next_game = breakout_update(&(_static_selector.breakout));
+        } break;
     }
 
     g_sprintf("FPS: %d", GetFPS());
@@ -148,6 +158,7 @@ void selector_deinit(void) {
     dvd_deinit(&_static_selector.dvd);
     pong_deinit(&_static_selector.pong);
     galaxy_deinit(&_static_selector.galaxy);
+    breakout_deinit(&_static_selector.breakout);
 }
 
 #endif

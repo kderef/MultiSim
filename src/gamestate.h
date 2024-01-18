@@ -46,7 +46,8 @@ static const char* SELECTED_TITLES[] = {
     [Selected_GOL] = "MultiSim - Game of Life",
     [Selected_DVD] = "MultiSim - DvD bouncy",
     [Selected_PONG] = "MultiSim - Pong",
-    [Selected_GALAXY] = "MultiSim - Galaxy"
+    [Selected_GALAXY] = "MultiSim - Galaxy",
+    [Selected_BREAKOUT] = "MultiSim - Breakout",
 };
 
 #define selected_get_window_title(S) (SELECTED_TITLES[S])

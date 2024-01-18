@@ -62,7 +62,8 @@ void universe_fill_random(Universe* uvs) {
 }
 
 void universe_resize(Universe* uvs, size_t new_width, size_t new_height) {
-    if (new_width <= uvs->width && new_height <= uvs->height) return;
+    if (new_width <= uvs->width && new_height <= uvs->height) 
+        return;
 
     size_t to_width  = (new_width  + GOL_SCALE - 1) / GOL_SCALE * GOL_SCALE;
     size_t to_height = (new_height + GOL_SCALE - 1) / GOL_SCALE * GOL_SCALE;

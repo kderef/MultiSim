@@ -194,7 +194,7 @@ SelectedGame gol_update(GameOfLife* gol) {
 
     switch (gol->theme) {
         case GOLTheme_Midnight: {
-            static Color midnight_fg_color = color(0, 0, 100);
+            Color midnight_fg_color = color(0, 0, 100);
             for (uint32_t y = 0; y < gol->universe.height; y++) {
                 for (uint32_t x = 0; x < gol->universe.width; x++) {
                     DrawRectangle(
