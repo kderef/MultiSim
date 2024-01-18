@@ -1,6 +1,7 @@
 bin
 winresource/resource.o
 build*
+.DS_Store
 *.exe
 *.out
 !build.c
