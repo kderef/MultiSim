@@ -14,6 +14,7 @@
 #define _STRINGIFY(X) #X
 
 // easier initialization
+#define vec3(X, Y, Z) ((Vector3){(float)(X), (float)(Y), (float)(Z)})
 #define vec2(X, Y) ((Vector2){(float)(X), (float)(Y)})
 #define rect(X, Y, W, H) \
     (Rectangle) {(float)(X), (float)(Y), (float)(W), (float)(H)}

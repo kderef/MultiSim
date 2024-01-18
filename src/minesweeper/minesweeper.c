@@ -50,7 +50,7 @@ SelectedGame minesweeper_update(Minesweeper* ms) {
 
 
     minesweeper_draw(ms);
-    return Selected_MINESWEEPER;
+    return Selected_None; // FIXME
 }
 
 #endif

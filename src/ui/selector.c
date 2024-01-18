@@ -10,6 +10,7 @@
 #include "../dvd/dvd.c"
 #include "../pong/pong.c"
 #include "../minesweeper/minesweeper.c"
+#include "../galaxy/galaxy.c"
 
 INCBIN(menu_img, "../assets/menu-bg.png");
 
@@ -17,7 +18,7 @@ typedef struct Selector {
     GameOfLife gol;
     Dvd dvd;
     Pong pong;
-    Minesweeper minesweeper;
+    Galaxy galaxy;
 
     SelectedGame selected;
     Texture2D background;
@@ -32,7 +33,7 @@ void selector_init(void) {
     _static_selector.gol = gol_new();
     _static_selector.dvd = dvd_new();
     _static_selector.pong = pong_new();
-    _static_selector.minesweeper = minesweeper_new();
+    _static_selector.galaxy = galaxy_new();
     _static_selector.selected = Selected_None;
 
     Image bg_img = LoadImageFromMemory(
@@ -95,8 +96,8 @@ static inline SelectedGame title_screen() {
     if (GuiButton(rect(button_x, screen_y_center + BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Pong")) {
         return Selected_PONG;
     }
-    if (GuiButton(rect(button_x, screen_y_center + 2*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Minesweeper")) {
-        return Selected_MINESWEEPER;
+    if (GuiButton(rect(button_x, screen_y_center + 2*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Galaxy")) {
+        return Selected_GALAXY;
     }
 
     return Selected_None;
@@ -126,12 +127,13 @@ void selector_update(void) {
         case Selected_PONG: {
             next_game = pong_update(&(_static_selector.pong));
         } break;
-        case Selected_MINESWEEPER: {
-            next_game = minesweeper_update(&(_static_selector.minesweeper));
+        case Selected_GALAXY: {
+            next_game = galaxy_update(&(_static_selector.galaxy));
         } break;
     }
 
-    if (global_state.show_fps) DrawTextD(TextFormat("FPS: %d", GetFPS()), 3, 0, 33.0, GOLD);
+    g_sprintf("FPS: %d", GetFPS());
+    if (global_state.show_fps) DrawTextD(global_text_buf, 3, 0, 33.0, GOLD);
     EndDrawing();
 
     if (next_game != _static_selector.selected) {
@@ -145,6 +147,7 @@ void selector_deinit(void) {
     game_of_life_deinit(&_static_selector.gol);
     dvd_deinit(&_static_selector.dvd);
     pong_deinit(&_static_selector.pong);
+    galaxy_deinit(&_static_selector.galaxy);
 }
 
 #endif

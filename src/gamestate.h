@@ -10,7 +10,7 @@ typedef enum SelectedGame {
     Selected_GOL,
     Selected_DVD,
     Selected_PONG,
-    Selected_MINESWEEPER
+    Selected_GALAXY
 } SelectedGame;
 
 typedef enum GameState {
@@ -45,7 +45,7 @@ static const char* SELECTED_TITLES[] = {
     [Selected_GOL] = "MultiSim - Game of Life",
     [Selected_DVD] = "MultiSim - DvD bouncy",
     [Selected_PONG] = "MultiSim - Pong",
-    [Selected_MINESWEEPER] = "MultiSim - Minesweeper"
+    [Selected_GALAXY] = "MultiSim - Galaxy"
 };
 
 #define selected_get_window_title(S) (SELECTED_TITLES[S])
