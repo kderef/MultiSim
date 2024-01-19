@@ -16,7 +16,7 @@
 │   ├── icon                    // The window/desktop icons 
 │   │   ├── ...  
 │   └── menu-bg.png             // The background image for the main menu
-├── include                     // The files from libraries used, primarily from [raylib](https://www.raylib.com)
+├── include                     // The files from libraries used, primarily from raylib (https://www.raylib.com)
 │   ├── ...  
 ├── lib                         // The static libraries used in linking the final executable.
 │   ├── WIN32                   // Compiled for Windows
@@ -34,13 +34,13 @@
 │   ├── galaxy                  // Galaxy game
 │   │   ├── galaxy.c            // Galaxy game logic
 │   │   └── galaxy.h            // Galaxy game header/constants
-│   ├── gamestate.h             // managed global state
+│   ├── gamestate.h            !// managed global state
 │   ├── gol                     // Game of Life game
 │   │   ├── cell.c              // Game of Life cell definition
 │   │   ├── game.c              // Game of Life game logic
 │   │   ├── theme.c             // Game of Life theme definitions
 │   │   └── universe.c          // Game of Life universe (dynamic array) implementation
-│   ├── main.c           !      // Main file, program executes from here.
+│   ├── main.c                 !// Main file, program executes from here.
 │   ├── minesweeper             // Minesweeper game
 │   │   └── minesweeper.c       // Minesweeper game logic
 │   ├── pong                    // Pong game
