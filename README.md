@@ -4,6 +4,7 @@
 *A game collection written in C using [Raylib](https://raylib.com)*.
 ---
 ## Structure  
+```
 ├── LICENSE               // **The License for the project**  
 ├── Legacy-rust-version   // **The legacy rust code, which has been ported C**  
 ├── README.md             // **The README file that's displayed here**  
@@ -56,7 +57,7 @@
 └── winresource  
     ├── resource.rc  
     └── windres.exe  
-  
+```
   
 
 ## CONTROLS
