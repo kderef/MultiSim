@@ -1,4 +1,9 @@
-#define VERSION "2.0.3"
+#define VERSION "2.0.4"
+
+// reduce file size on windows
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#endif
 
 #include "raylib.h"
 #include "const.h"
@@ -50,6 +55,7 @@ int main(void) {
         selector_update();
     }
 
+    // close the window and unload all assets (textures, images, etc.)
     CloseWindow();
     selector_deinit();
     unload_default_font();

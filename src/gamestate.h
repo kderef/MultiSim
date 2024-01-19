@@ -11,7 +11,6 @@ typedef enum SelectedGame {
     Selected_DVD,
     Selected_PONG,
     Selected_GALAXY,
-    Selected_BREAKOUT
 } SelectedGame;
 
 typedef enum GameState {
@@ -21,9 +20,6 @@ typedef enum GameState {
 } GameState;
 
 // global state
-
-#define GLOBAL_TEXT_BUF_SIZE (256 + 1)
-
 typedef struct GlobalState {
     bool show_fps;
     int screen_w;
@@ -32,10 +28,12 @@ typedef struct GlobalState {
     Vector2 mouse_delta;
     bool left_mouse_down;
     bool right_mouse_down;
+    float mouse_wheel_move;
 } GlobalState;
 
 static GlobalState global_state = {0};
 
+#define GLOBAL_TEXT_BUF_SIZE (256 + 1)
 static char global_text_buf[GLOBAL_TEXT_BUF_SIZE];
 
 // global snprintf to global_text_buf
@@ -47,7 +45,6 @@ static const char* SELECTED_TITLES[] = {
     [Selected_DVD] = "MultiSim - DvD bouncy",
     [Selected_PONG] = "MultiSim - Pong",
     [Selected_GALAXY] = "MultiSim - Galaxy",
-    [Selected_BREAKOUT] = "MultiSim - Breakout",
 };
 
 #define selected_get_window_title(S) (SELECTED_TITLES[S])

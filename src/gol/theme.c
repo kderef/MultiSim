@@ -8,17 +8,23 @@
 //! NOTE: secret theme called Bolus can only be activated with B.
 
 typedef struct GolThemeStyle {
+    /// The background color
     Color bg_color;
+    /// The color of the foreground characters
     Color fg_color;
+    /// The accent color (mouse hover, UI accents, etc.)
     Color ac_color;
+    /// The color of the background character
     Color bg_char_color;
+    /// The character for the dead cells
     const char* bg_char;
+    /// The character for the alive cells
     const char* fg_char;
+    /// The name of the theme
     const char* name;
 } GolThemeStyle;
 
 #define ThemeStyle GolThemeStyle
-
 
 #define THEMESTYLE_NEW(NAME, BG_C, FG_C, C_BG, C_FG, C_AC, C_BC) \
     (ThemeStyle){C_BG, C_FG, C_AC, C_BC, BG_C, FG_C, NAME}

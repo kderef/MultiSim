@@ -29,7 +29,6 @@ Universe universe_new(size_t init_width, size_t init_height) {
     uvs.size   = uvs.width * uvs.height;
     uvs.cells      = (Cell*) calloc(uvs.size, sizeof(Cell));
     uvs.cells_copy = (Cell*) calloc(uvs.size, sizeof(Cell));
-
     return uvs;
 }
 

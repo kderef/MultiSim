@@ -11,7 +11,6 @@
 #include "../pong/pong.c"
 #include "../minesweeper/minesweeper.c"
 #include "../galaxy/galaxy.c"
-#include "../breakout/breakout.c"
 
 INCBIN(menu_img, "../assets/menu-bg.png");
 
@@ -20,7 +19,6 @@ typedef struct Selector {
     Dvd dvd;
     Pong pong;
     Galaxy galaxy;
-    Breakout breakout;
 
     SelectedGame selected;
     Texture2D background;
@@ -36,7 +34,6 @@ void selector_init(void) {
     _static_selector.dvd = dvd_new();
     _static_selector.pong = pong_new();
     _static_selector.galaxy = galaxy_new();
-    _static_selector.breakout = breakout_new();
     _static_selector.selected = Selected_None;
 
     Image bg_img = LoadImageFromMemory(
@@ -84,11 +81,12 @@ static inline SelectedGame title_screen() {
         splash_text_len_half, 340.0, text_zoom_offset, 1.0, GOLD
     );
 
-    GuiDrawText("By Kian (kn-ht)", rect(0, global_state.screen_h - 20, 200, 20), TEXT_ALIGN_LEFT, GRAY);
-    GuiDrawText("Version " VERSION, rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("Version " VERSION, rect(0, global_state.screen_h - 60, 200, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("By Kian (kn-ht)", rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("Written using Raylib " RAYLIB_VERSION, rect(0, global_state.screen_h - 20, 300, 20), TEXT_ALIGN_LEFT, GRAY);
 
     // draw the buttons
-    button_y = screen_y_center - BUTTON_HEIGHT - BUTTONS_SPACING;
+    button_y = screen_y_center - BUTTONS_SPACING;
     button_x = screen_x_center / 2;
 
     if (GuiButton(rect(button_x, button_y, screen_x_center, BUTTON_HEIGHT), "Game of Life")) {
@@ -102,9 +100,6 @@ static inline SelectedGame title_screen() {
     }
     if (GuiButton(rect(button_x, button_y + 3*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "[WIP] Galaxy")) {
         return Selected_GALAXY;
-    }
-    if (GuiButton(rect(button_x, button_y + 4*BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "[WIP] Breakout")) {
-        return Selected_BREAKOUT;
     }
 
     return Selected_None;
@@ -120,6 +115,7 @@ void selector_update(void) {
     global_state.right_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
     global_state.mouse_pos = GetMousePosition();
     global_state.mouse_delta = GetMouseDelta();
+    global_state.mouse_wheel_move = GetMouseWheelMove();
 
     switch (_static_selector.selected) {
         case Selected_None: {
@@ -136,9 +132,6 @@ void selector_update(void) {
         } break;
         case Selected_GALAXY: {
             next_game = galaxy_update(&(_static_selector.galaxy));
-        } break;
-        case Selected_BREAKOUT: {
-            next_game = breakout_update(&(_static_selector.breakout));
         } break;
     }
 
@@ -158,7 +151,6 @@ void selector_deinit(void) {
     dvd_deinit(&_static_selector.dvd);
     pong_deinit(&_static_selector.pong);
     galaxy_deinit(&_static_selector.galaxy);
-    breakout_deinit(&_static_selector.breakout);
 }
 
 #endif

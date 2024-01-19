@@ -79,7 +79,7 @@ static inline
 SelectedGame gol_update(GameOfLife* gol) {
     static float dt;
     static bool size_changed;
-    static int key, scrollwheel_move;
+    static int key;
     static ThemeStyle theme_style;
     // dt shit
     static bool draw_update_time,
@@ -113,17 +113,16 @@ SelectedGame gol_update(GameOfLife* gol) {
     mouse_in_grid = gol->mouse_pos.y < (gol->window_height - GOL_STATUS_BAR_HEIGHT - 1.0) / GOL_SCALE;
 
     // handle the keys
-    scrollwheel_move = GetMouseWheelMove();
     key = GetKeyPressed();
 
-    if (key == KEY_MINUS || key == KEY_KP_SUBTRACT || scrollwheel_move < 0.0f) {
+    if (key == KEY_MINUS || key == KEY_KP_SUBTRACT || global_state.mouse_wheel_move < 0.0f) {
         gol->update_frame_cap = max(
             0.0, gol->update_frame_cap - GOL_DEFAULT_TIME_STEP
         );
         draw_update_time = true;
         passed_show_scroll_time = 0.0;
     }
-    if (key == KEY_EQUAL || key == KEY_KP_EQUAL || scrollwheel_move > 0.0f) {
+    if (key == KEY_EQUAL || key == KEY_KP_EQUAL || global_state.mouse_wheel_move > 0.0f) {
         gol->update_frame_cap += GOL_DEFAULT_TIME_STEP;
         draw_update_time = true;
         passed_show_scroll_time = 0.0;
@@ -325,6 +324,7 @@ SelectedGame gol_update(GameOfLife* gol) {
     //snprintf(buffer, sizeof buffer, "%llu", gol->iterations); // NOTE: this might be useful later
     //DrawTextD(buffer, icon_padding_x - 100, icon_y, 30.0, WHITE);
 
+    // draw the outline around the mouse selection
     if (gol->state == GameState_Paused && mouse_in_grid) {
         DrawRectangleLines(
             floorf(gol->mouse_pos.x) * GOL_SCALE,

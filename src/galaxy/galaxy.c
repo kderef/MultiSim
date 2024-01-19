@@ -2,7 +2,6 @@
 #define GALAXY_C
 
 #include "raylib.h"
-#include "rcamera.h"
 #include "galaxy.h"
 #include <stdlib.h>
 
@@ -17,7 +16,8 @@ Galaxy galaxy_new(void) {
             .position = vec3(0, GX_CAMERA_DEFAULT_Y, 0),
             .target = vec3(100, 10, 100)
         },
-        .velocity = vec3(0, 0, 0)
+        .velocity = vec3(0, 0, 0),
+        .dash_bar = 0.0f,
     };
 }
 
@@ -31,21 +31,31 @@ void galaxy_draw(Galaxy* g) {
     BeginDrawing();
     ClearBackground(BLACK);
 
-    g_sprintf("pos: [%.2f, %.2f, %.2f]", g->camera.position.x, g->camera.position.y, g->camera.position.z);
-    DrawTextD(global_text_buf, 0, 23, 30.0, RAYWHITE);
-
     BeginMode3D(g->camera);
         UpdateCamera(&(g->camera), CAMERA_FIRST_PERSON);
         DrawGrid(500, 2.0);
-        DrawCube(vec3(100, 10, 100), 100.0, 100.0, 100.0, RED);
-
     EndMode3D();
-    
+
+    g_sprintf("pos: [%.2f, %.2f, %.2f]", g->camera.position.x, g->camera.position.y, g->camera.position.z);
+    DrawTextD(global_text_buf, 0, 23, 30.0, RAYWHITE);
+
+    static const int DASHBAR_HEIGHT = 20;
+    static const int DASHBAR_WIDTH = 300;
+
+    GuiProgressBar(rect(10, global_state.screen_h - 10 - DASHBAR_HEIGHT, DASHBAR_WIDTH, DASHBAR_HEIGHT),
+        "", "DASH", &g->dash_bar, 0.0f, 1.0f
+    );
+
     // TODO
 }
 
 SelectedGame galaxy_update(Galaxy* g) {
     int key = GetKeyPressed();
+    float dt = GetFrameTime();
+
+    if (global_state.left_mouse_down) {}
+
+    g->dash_bar = max(g->dash_bar + 20.0f * dt, 0.0f);
 
     switch (key) {
         case KEY_ESCAPE: {
@@ -55,6 +65,13 @@ SelectedGame galaxy_update(Galaxy* g) {
         } break;
         case KEY_F5: {
             global_state.show_fps = !(global_state.show_fps);
+        } break;
+        case KEY_LEFT_SHIFT: {
+            if (g->dash_bar == 1.0f) {
+                g->dash_bar = 0.0f;
+                // TODO fix dashing
+                g->camera.position.x += 20.0f;
+            }
         } break;
         default: {}
     }

@@ -1,8 +1,8 @@
 bin
 winresource/resource.o
-build*
+nob*
 .DS_Store
 *.exe
 *.out
-!build.c
-!build.h
+!nob.h
+!nob.c
