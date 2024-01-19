@@ -24,13 +24,13 @@
 │   ├── macos             // Compiled for MacOS
 │   │   └── libraylib.a  
 ├── nob.c                 // The build file, compile and run this to build the project.
-├── nob.h                 // **Header to assist in building, from https://github.com/tsoding/nobuild
+├── nob.h                 // Header to assist in building, from https://github.com/tsoding/nobuild
 ├── src                   // The directory containing original source code.
 │   ├── const.h           // Constants, constant initializers and macro's
 │   ├── dvd               // DvD game
 │   │   └── dvd.c         // DvD game logic  
 │   ├── external          // External headers
-│   │   └── incbin.h      // "Include binary files with ease"*, from https://github.com/graphitemaster/incbin
+│   │   └── incbin.h      // "Include binary files with ease", from https://github.com/graphitemaster/incbin
 │   ├── galaxy            // Galaxy game
 │   │   ├── galaxy.c      // Galaxy game logic
 │   │   └── galaxy.h      // Galaxy game header/constants
@@ -41,16 +41,16 @@
 │   │   ├── theme.c       // Game of Life theme definitions
 │   │   └── universe.c    // Game of Life universe (dynamic array) implementation
 │   ├── main.c           !// Main file, program executes from here.
-│   ├── minesweeper  
-│   │   └── minesweeper.c  
-│   ├── pong  
-│   │   ├── ball.h  
-│   │   ├── paddle.h    
-│   │   └── pong.c    
-│   └── ui    
-│       ├── font.c  
-│       ├── raygui_incl.h  
-│       ├── raygui_style_dark.h  
+│   ├── minesweeper       // Minesweeper game
+│   │   └── minesweeper.c // Minesweeper game logic
+│   ├── pong              // Pong game
+│   │   ├── ball.h        // Pong Ball struct and constants 
+│   │   ├── paddle.h      // Pong Paddle constants
+│   │   └── pong.c        // Pong game logic
+│   └── ui                // ui management
+│       ├── font.c        // default font used everywhere
+│       ├── raygui_incl.h // (re)include raylib without issues
+│       ├── raygui_style_dark.h 
 │       ├── selector.c  
 │       ├── splashtext.c  
 │       └── windowicon.c  
