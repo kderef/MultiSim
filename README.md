@@ -51,12 +51,12 @@
 │       ├── font.c              // default font used everywhere
 │       ├── raygui_incl.h       // (re)include raylib without issues
 │       ├── raygui_style_dark.h // Dark mode
-│       ├── selector.c  
-│       ├── splashtext.c  
-│       └── windowicon.c  
-└── winresource  
-    ├── resource.rc  
-    └── windres.exe  
+│       ├── selector.c         !// The 'selector' that manages and updates the games
+│       ├── splashtext.c        // the yellow random text shown next to the title
+│       └── windowicon.c        // Load/set the window icon
+└── winresource                 // Windows metadata (for example the desktop icon)
+    ├── resource.rc             // Windows resource file that sets the metadata (icon etc.)
+    └── windres.exe             // Program used to set the window icon
 ```
   
 
