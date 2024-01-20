@@ -1,6 +1,20 @@
 #![allow(non_snake_case)]
 #![cfg_attr(all(target_os = "windows", not(debug_assertions)), windows_subsystem = "windows")]
 
+use dvd::Dvd;
+use raylib_ffi::colors;
+use raylib_port::{init_audio_device, Window, begin_drawing, clear_background, end_drawing, Image, Rectangle};
+
+mod game;
+mod gamestate;
+
+// ports of unsafe code
+mod  raylib_port;
+
+mod gol_consts;
+mod dvd;
+
+/*
 // game trait
 mod game;
 
@@ -24,33 +38,30 @@ use gol_consts::{WINDOW_H, WINDOW_W};
 use selector::Selector;
 
 use std::time::{UNIX_EPOCH, SystemTime};
-use macroquad::{miniquad::conf::Icon, prelude::*, audio::load_sound_from_bytes};
+*/
 
-/// Window configuration
-fn window_conf() -> Conf {
-    Conf {
-        window_title: "MultiSim-rs".to_owned(),
-        window_width: WINDOW_W as i32,
-        window_height: WINDOW_H as i32,
-        high_dpi: true,
-        fullscreen: false,
-        window_resizable: true,
-        sample_count: Default::default(),
-        icon: Some(Icon::miniquad_logo()),
-        platform: Default::default()
-    }
-}
+use game::Game;
 
-#[macroquad::main(window_conf)]
-async fn main() {
+fn main() {
     // seed rand
-    macroquad::rand::srand(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|t| t.as_secs())
-            .unwrap_or(69),
-    );
+    init_audio_device();
 
+    let mut window = Window::init(500, 500, "Hello, World!");
+    window.set_target_fps(120);
+    window.set_exit_key(raylib_ffi::enums::KeyboardKey::Null);
+    //window.set_icon();
+
+    window.show();
+
+    let mut dvd = Dvd::new();
+
+    while !window.should_close() {
+        begin_drawing();
+        dvd.update();
+        end_drawing();
+    }
+
+    /*
 
     // instantiate games
     let mut selector = Selector::new();
@@ -64,4 +75,5 @@ async fn main() {
         selector.update();
         next_frame().await;
     }
+    */
 }

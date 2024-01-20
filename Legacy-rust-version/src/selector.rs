@@ -3,13 +3,6 @@ use macroquad::{audio::Sound, prelude::*, ui::root_ui};
 use crate::game::Game;
 use crate::{dvd::Dvd, gol_game::GameOfLife, pong::Pong};
 
-pub enum SelectedGame {
-    None,
-    GameOfLife,
-    Pong,
-    Dvd,
-}
-
 pub struct Selector {
     window_size: Vec2,
     current: SelectedGame,

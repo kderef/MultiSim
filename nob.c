@@ -60,7 +60,11 @@
 #endif
 
 #ifndef BIN
-#  define BIN " ./bin/MultiSim "
+#  ifdef _WIN32
+#    define BIN ".\\bin\\MultiSim.exe"
+#  else
+#    define BIN "./bin/MultiSim"
+#  endif
 #endif
 
 // mkdir()
@@ -113,7 +117,14 @@ int main(int argc, char** argv) {
         resource_command = MINGW_RESOURCE_COMMAND;
         strcat(cflags, CFLAGS_WIN);
     }
-    if (release_mode) strcat(cflags, CFLAGS_RELEASE);
+    if (release_mode) {
+        strcat(cflags, CFLAGS_RELEASE);
+    #if defined(_WIN32)
+        strcat(cflags, " -mwindows ");
+    #else
+        if (mingw) strcat(cflags, " -mwindows ");
+    #endif
+    }
 
 #if defined(_WIN32)
     if (!mingw)
@@ -128,7 +139,7 @@ int main(int argc, char** argv) {
     char command[2056];
 
     INFO("CMD(winresource): %s", resource_command);
-    system(resource_command);
+    int resource_success = system(resource_command);
 
     snprintf(
         command, sizeof command,
@@ -137,7 +148,18 @@ int main(int argc, char** argv) {
     );
 
     INFO("CMD: %s", command);
-    system(command);
+    int compile_result = system(command);
+
+    if (resource_success != 0) {
+        PANIC("Failed to compile windows resource file.");
+    }
+    if (compile_result != 0) {
+        PANIC("Compilation failed. Aborting...");
+    }
+
+    printf("\n");
+    INFO("Compilation succeeded!");
+    INFO("The compiled binary ("BIN") is in the .\\bin\\ folder.");
 
     if (run) {
         INFO("Running " BIN);

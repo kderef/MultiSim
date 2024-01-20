@@ -1,4 +1,4 @@
-#define VERSION "2.0.4"
+#define VERSION "2.0.5"
 
 // reduce file size on windows
 #ifdef _WIN32

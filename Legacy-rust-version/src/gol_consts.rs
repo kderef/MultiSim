@@ -1,5 +1,3 @@
-use macroquad::texture::DrawTextureParams;
-
 pub const SCALE: usize = 16;
 pub const SCALE_U32: u32 = SCALE as u32;
 
@@ -15,11 +13,3 @@ pub const DEFAULT_UPDATE_CAP: f32 = 0.50;
 pub const RESIZE_TIME_LIMIT: f32 = 0.2;
 
 pub const BOLUS: &[u8] = include_bytes!("../assets/bolus.png");
-pub const BOLUS_PARAMS: DrawTextureParams = DrawTextureParams {
-    dest_size: Some(macroquad::prelude::vec2(SCALE as f32, SCALE as f32)),
-    flip_x: false,
-    flip_y: false,
-    source: None,
-    rotation: 0.0,
-    pivot: None
-};
