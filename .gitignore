@@ -6,3 +6,5 @@ nob*
 *.out
 !nob.h
 !nob.c
+Legacy-rust-version/target
+Legacy-rust-version/Cargo.lock
