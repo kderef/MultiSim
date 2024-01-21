@@ -4,7 +4,7 @@ description = "A simulation game"
 authors = ["Kian Heitkamp"]
 version = "2.0.2"
 edition = "2021"
-build = "build.rs"
+#build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,8 +19,7 @@ lto = true
 opt-level = 3
 
 [dependencies]
-bindgen = "0.69.2"
-raylib-ffi = "5.0.0"
+raylib = {git = "https://github.com/bitten2up/raylib-rs", version = "*", branch = "5.1.0"}
 
 [build-dependencies]
 winres = "0.1"
