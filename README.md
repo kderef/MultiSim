@@ -1,4 +1,5 @@
-![icon](assets/icon/icon-big.png?raw=true "MultiSim") # MultiSim  
+![icon](assets/icon/icon-big.png?raw=true =300x300)
+# MultiSim  
 ##### *A game collection written in C using [Raylib](https://raylib.com)*.  
 ---
 ## Structure  
