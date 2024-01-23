@@ -30,8 +30,17 @@ typedef struct GlobalState {
     bool right_mouse_down;
     float mouse_wheel_move;
 } GlobalState;
-
 static GlobalState global_state = {0};
+
+void update_global_state() {
+    global_state.screen_w = GetScreenWidth();
+    global_state.screen_h = GetScreenHeight();
+    global_state.left_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    global_state.right_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+    global_state.mouse_pos = GetMousePosition();
+    global_state.mouse_delta = GetMouseDelta();
+    global_state.mouse_wheel_move = GetMouseWheelMove();
+}
 
 #define GLOBAL_TEXT_BUF_SIZE (256 + 1)
 static char global_text_buf[GLOBAL_TEXT_BUF_SIZE];

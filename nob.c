@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     GO_REBUILD_URSELF(argc, argv);
 
     const char* cc = CC;
-    char cflags[256] = CFLAGS;
+    char cflags[1024] = CFLAGS;
     const char* resource_command = RESOURCE_COMMAND;
 
     bool release_mode = false, mingw = false, run = false;
@@ -127,10 +127,8 @@ int main(int argc, char** argv) {
     }
 
 #if defined(_WIN32)
-    if (!mingw)
         strcat(cflags, CFLAGS_WIN);
 #elif defined(__APPLE__)
-    if (!mingw)
         strcat(cflags, CFLAGS_APPLE);
 #endif
 
@@ -148,18 +146,13 @@ int main(int argc, char** argv) {
     );
 
     INFO("CMD: %s", command);
-    int compile_result = system(command);
+    int comp_result = system(command);
 
-    if (resource_success != 0) {
-        PANIC("Failed to compile windows resource file.");
+    if (comp_result != 0) {
+        ERRO("Compile command `%s` exited with non-zero code %d", command, comp_result);
+        INFO("Aborting...");
+        return 1;
     }
-    if (compile_result != 0) {
-        PANIC("Compilation failed. Aborting...");
-    }
-
-    printf("\n");
-    INFO("Compilation succeeded!");
-    INFO("The compiled binary ("BIN") is in the .\\bin\\ folder.");
 
     if (run) {
         INFO("Running " BIN);

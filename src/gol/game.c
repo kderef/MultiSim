@@ -22,6 +22,8 @@ INCBIN(bolus, "../assets/bolus.png");
 #define Theme GolTheme
 #define Cell GolCell
 
+#define GOL_SPEED_SLIDER_MAX 0.65f
+
 typedef struct GameOfLife {
     Universe universe;
     GameState state;
@@ -32,6 +34,8 @@ typedef struct GameOfLife {
     Theme theme;
     Theme prev_theme;
     Texture2D bolus;
+
+    float speed_slider_value;
 
     uint64_t iterations;
 } GameOfLife;
@@ -57,6 +61,7 @@ GameOfLife gol_new() {
     gol.state = GameState_Paused;
     gol.theme = GOLTheme_Default;
     gol.prev_theme = -1;
+    gol.speed_slider_value = GOL_SPEED_SLIDER_MAX - GOL_DEFAULT_UPDATE_CAP;
 
     return gol;
 }
@@ -82,16 +87,12 @@ SelectedGame gol_update(GameOfLife* gol) {
     static int key;
     static ThemeStyle theme_style;
     // dt shit
-    static bool draw_update_time,
-        mouse_left_down, mouse_right_down;
+    static bool mouse_left_down, mouse_right_down;
     static float passed_time;
-    static float passed_show_scroll_time;
     static bool mouse_in_grid;
 
     dt = GetFrameTime();
-
     passed_time = (passed_time >= gol->update_frame_cap)? 0.0f : passed_time + dt;
-    passed_show_scroll_time += dt;
 
     // handle window size
     size_changed = gol_screen_size_changed(gol);
@@ -115,17 +116,15 @@ SelectedGame gol_update(GameOfLife* gol) {
     // handle the keys
     key = GetKeyPressed();
 
-    if (key == KEY_MINUS || key == KEY_KP_SUBTRACT || global_state.mouse_wheel_move < 0.0f) {
+    if (IsKeyDown(KEY_MINUS) || IsKeyDown(KEY_KP_SUBTRACT) || global_state.mouse_wheel_move < 0.0f) {
+        gol->update_frame_cap = Clamp(gol->update_frame_cap + GOL_DEFAULT_TIME_STEP, 0.0f, GOL_SPEED_SLIDER_MAX);
+        gol->speed_slider_value = GOL_SPEED_SLIDER_MAX - gol->update_frame_cap;
+    }
+    if (IsKeyDown(KEY_EQUAL) || IsKeyDown(KEY_KP_EQUAL) || global_state.mouse_wheel_move > 0.0f) {
         gol->update_frame_cap = max(
             0.0, gol->update_frame_cap - GOL_DEFAULT_TIME_STEP
         );
-        draw_update_time = true;
-        passed_show_scroll_time = 0.0;
-    }
-    if (key == KEY_EQUAL || key == KEY_KP_EQUAL || global_state.mouse_wheel_move > 0.0f) {
-        gol->update_frame_cap += GOL_DEFAULT_TIME_STEP;
-        draw_update_time = true;
-        passed_show_scroll_time = 0.0;
+        gol->speed_slider_value = GOL_SPEED_SLIDER_MAX - gol->update_frame_cap;
     }
 
     switch (key) {
@@ -257,14 +256,6 @@ SelectedGame gol_update(GameOfLife* gol) {
             }
         }
     }
-    
-    if (passed_show_scroll_time < 0.6f && draw_update_time) {
-        g_sprintf("[UPDATE TIME = %.2fs]", gol->update_frame_cap);
-        DrawTextD(global_text_buf, gol->window_width / 2 - 170, gol->window_height / 2 - 40, 40, theme_style.ac_color);
-    } else {
-        passed_show_scroll_time = 0.0f;
-        draw_update_time = false;
-    }
 
     GuiDrawRectangle(
         rect(0, global_state.screen_h - GOL_STATUS_BAR_HEIGHT, global_state.screen_w, GOL_STATUS_BAR_HEIGHT),
@@ -277,23 +268,21 @@ SelectedGame gol_update(GameOfLife* gol) {
     const int icon_y = global_state.screen_h - ICON_SIZE - ICON_PADDING;
     int icon_padding_x = ICON_PADDING;
 
-    if (GuiButton(rect(icon_padding_x, icon_y, ICON_SIZE, ICON_SIZE), "#129#")) {
-        gol->update_frame_cap = max(0.0, gol->update_frame_cap - GOL_DEFAULT_TIME_STEP);
-        draw_update_time = true;
-        passed_show_scroll_time = 0.0;
-    }
+    const int slider_width = ICON_SIZE*3.5;
+
+    // pause button
     if (GuiButton(
-        rect(icon_padding_x += ICON_SIZE + ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE),
+        rect(slider_width + 70, icon_y, ICON_SIZE, ICON_SIZE),
         (gol->state == GameState_Paused)? "#131#" : "#132#"
     )) gol_state_toggle(gol);
-    if (GuiButton(
-        rect(icon_padding_x += ICON_SIZE + ICON_PADDING, icon_y, ICON_SIZE, ICON_SIZE),
-        "#134#"
-    )) {
-        gol->update_frame_cap += GOL_DEFAULT_TIME_STEP;
-        draw_update_time = true;
-        passed_show_scroll_time = 0.0;
-    }
+
+    GuiSliderPro(
+        rect(ICON_PADDING + 65, icon_y + (14.25/2) - ICON_PADDING, slider_width, ICON_SIZE*0.75),
+        "SPEED", "", &(gol->speed_slider_value), 0.0f, GOL_SPEED_SLIDER_MAX,
+        8
+    );
+
+    gol->update_frame_cap = GOL_SPEED_SLIDER_MAX - gol->speed_slider_value;
 
     icon_padding_x = gol->window_width - ICON_PADDING - ICON_SIZE;
 

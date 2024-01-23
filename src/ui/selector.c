@@ -1,6 +1,8 @@
 #ifndef SELECTOR_C_
 #define SELECTOR_C_
 
+// NOTE: idea: Github icon in the corner to take you to the repository
+
 #include "raygui_incl.h"
 #include "raygui_style_dark.h"
 #include "splashtext.c"
@@ -66,7 +68,7 @@ static inline SelectedGame title_screen() {
     ClearBackground(BLACK);
     DrawTextureRec(
         _static_selector.background, rect(0, 0, global_state.screen_w, global_state.screen_h),
-        vec2(0, 0), WHITE
+        VEC2_ZERO, WHITE
     );
 
     DrawTextD(
@@ -81,9 +83,15 @@ static inline SelectedGame title_screen() {
         splash_text_len_half, 340.0, text_zoom_offset, 1.0, GOLD
     );
 
+    if (GuiLabelButton(rect(0, 0, 300, 20), "#171# repository")) {
+        OpenURL(GIT_URL);
+    }
     GuiDrawText("Version " VERSION, rect(0, global_state.screen_h - 60, 200, 20), TEXT_ALIGN_LEFT, GRAY);
     GuiDrawText("By Kian (kn-ht)", rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
-    GuiDrawText("Written using Raylib " RAYLIB_VERSION, rect(0, global_state.screen_h - 20, 300, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("Written using         " RAYLIB_VERSION, rect(0, global_state.screen_h - 20, 300, 20), TEXT_ALIGN_LEFT, GRAY);
+    if (GuiLabelButton(rect(133, global_state.screen_h - 20, 60, 20), "Raylib")) {
+        OpenURL("https://github.com/raysan5/raylib");
+    }
 
     // draw the buttons
     button_y = screen_y_center - BUTTONS_SPACING;
@@ -109,13 +117,7 @@ static inline SelectedGame title_screen() {
 void selector_update(void) {
     static SelectedGame next_game;
 
-    global_state.screen_w = GetScreenWidth();
-    global_state.screen_h = GetScreenHeight();
-    global_state.left_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-    global_state.right_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
-    global_state.mouse_pos = GetMousePosition();
-    global_state.mouse_delta = GetMouseDelta();
-    global_state.mouse_wheel_move = GetMouseWheelMove();
+    update_global_state();
 
     switch (_static_selector.selected) {
         case Selected_None: {
@@ -153,4 +155,6 @@ void selector_deinit(void) {
     galaxy_deinit(&_static_selector.galaxy);
 }
 
+#undef BUTTON_HEIGHT
+#undef BUTTONS_SPACING
 #endif

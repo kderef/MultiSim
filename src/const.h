@@ -3,6 +3,18 @@
 
 #include <stdint.h>
 
+// URL to the repository
+#define GIT_URL "https://github.com/kn-ht/multisim"
+
+// raylib defines
+#define vec2(X, Y) (Vector2){(float)(X), (float)(Y)}
+#define vec3(X, Y, Z) (Vector3){(float)(X), (float)(Y), (float)(Z)}
+#define rect(X, Y, W, H) (Rectangle){(float)(X), (float)(Y), (float)(W), (float)(H)}
+
+#define VEC2_ZERO (Vector2){0.0f, 0.0f}
+#define VEC3_ZERO (Vector3){0.0f, 0.0f, 0.0f}
+#define RECT_ZERO (Rectangle){0.0f, 0.0f, 0.0f, 0.0f}
+
 // Incbin / binary files
 #define INCBIN_SILENCE_BITCODE_WARNING
 #define INCBIN_PREFIX
@@ -14,11 +26,6 @@
 #define _STRINGIFY(X) #X
 
 // easier initialization
-#define vec3(X, Y, Z) ((Vector3){(float)(X), (float)(Y), (float)(Z)})
-#define vec2(X, Y) ((Vector2){(float)(X), (float)(Y)})
-#define rect(X, Y, W, H) \
-    (Rectangle) {(float)(X), (float)(Y), (float)(W), (float)(H)}
-
 #define min(a, b) (((a) < (b))? (a) : (b))
 #define max(a, b) (((a) > (b))? (a) : (b))
 
@@ -41,7 +48,7 @@
 #define GOL_GRID_W  (WINDOW_W / GOL_SCALE)
 #define GOL_GRID_H  (WINDOW_H - GOL_STATUS_BAR_HEIGHT) / GOL_SCALE
 
-#define GOL_DEFAULT_TIME_STEP   0.01f
+#define GOL_DEFAULT_TIME_STEP   0.001f
 #define GOL_DEFAULT_UPDATE_CAP  0.2f
 #define GOL_RESIZE_TIME_LIMIT   0.2f
 
