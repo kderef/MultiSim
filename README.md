@@ -85,13 +85,15 @@ Before building you need to have installed on your system:
 
 Then run the following command in your terminal.
 **NOTE**: replace *{CC}* with your C compiler of choice (*gcc, clang, etc.*).
-**NOTE**: When cross compiling with mingw, replace _build.c_ with _build-mingw.c_.
+**NOTE**: When cross compiling with mingw, pass **mingw** as an argument to ./nob
 ```
 git clone https://github.com/kn-ht/multisim
 cd multisim
-{CC} build.c -o build
-./build release
+{CC} nob.c -o nob
+./nob release
 ```
+
+**NOTE:** You only need to bootstrap (_compile_) the **nob** executable once, on subsequent runs it will recompile itself.
 
 The compiled executable will be in the ./bin/ folder.
  
