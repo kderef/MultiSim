@@ -58,12 +58,21 @@
     ├── resource.rc             // Windows resource file that sets the metadata (icon etc.)
     └── windres.exe             // Program used to set the window icon
 ```
-  
 
+### Code Style  
+```C
+// Structures
+typedef struct SomeStruct {
+    ...
+} SomeStruct;
+
+// "methods" (functions for structs)
+SomeStruct somestruct_new() {}
+void somestruct_update(SomeStruct* s) {}
+```
+---
 ## CONTROLS
-- **Space** to pause/unpause the current game.
 - **Escape** to return to the main menu.
-- **H** to toggle help mode.
 ---
 ## INSTALLING
 You can download the exe from the releases tab on the right of the page,
