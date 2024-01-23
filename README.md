@@ -26,7 +26,7 @@
 ├── nob.c                       // The build file, compile and run this to build the project.
 ├── nob.h                       // Header to assist in building, from https://github.com/tsoding/nobuild
 ├── src                         // The directory containing original source code.
-│   ├── const.h                 // Constants, constant initializers and macro's
+│   ├── const.h                !// Constants, constant initializers and macro's
 │   ├── dvd                     // DvD game
 │   │   └── dvd.c               // DvD game logic  
 │   ├── external                // External headers
