@@ -1,6 +1,10 @@
 #define NOBUILD_IMPLEMENTATION
 #include "nob.h"
 
+#ifdef _WIN32
+#  include <direct.h>
+#endif
+
 #include <stdbool.h>
 
 /************* Flags & Constants *************/
