@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 
     const char* cc = CC;
     char cflags[1024] = CFLAGS;
-    char cflags[1024] = CFLAGS;
+
     const char* resource_command = RESOURCE_COMMAND;
 
     bool release_mode = false, mingw = false, run = false;
@@ -160,7 +160,6 @@ int main(int argc, char** argv) {
         INFO("Aborting...");
         return 1;
     }
-    int comp_result = system(command);
 
     if (comp_result != 0) {
         ERRO("Compile command `%s` exited with non-zero code %d", command, comp_result);
