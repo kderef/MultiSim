@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
 
     const char* cc = CC;
     char cflags[1024] = CFLAGS;
+    char cflags[1024] = CFLAGS;
     const char* resource_command = RESOURCE_COMMAND;
 
     bool release_mode = false, mingw = false, run = false;
@@ -119,13 +120,15 @@ int main(int argc, char** argv) {
     }
     if (release_mode) {
         strcat(cflags, CFLAGS_RELEASE);
-    #if defined(_WIN32)
-        strcat(cflags, " -mwindows ");
-    #else
-        if (mingw) strcat(cflags, " -mwindows ");
-    #endif
+        if (mingw) {
+            strcat(cflags, " -mwindows ");
+        }
+    } else {
+        strcat(cflags, " -DDEBUG ");
     }
 
+
+    if (!mingw)
 #if defined(_WIN32)
         strcat(cflags, CFLAGS_WIN);
 #elif defined(__APPLE__)
@@ -146,6 +149,13 @@ int main(int argc, char** argv) {
     );
 
     INFO("CMD: %s", command);
+    int comp_result = system(command);
+
+    if (comp_result != 0) {
+        ERRO("Compile command `%s` exited with non-zero code %d", command, comp_result);
+        INFO("Aborting...");
+        return 1;
+    }
     int comp_result = system(command);
 
     if (comp_result != 0) {
