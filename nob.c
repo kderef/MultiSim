@@ -1,8 +1,20 @@
+// build system
 #define NOBUILD_IMPLEMENTATION
 #include "nob.h"
 
+// string comparison
+#define streq(A, B) (strcmp((A), (B)) == 0)
+
 #ifdef _WIN32
-#  include <direct.h>
+#  define IS_WINDOWS 1
+#else
+#  define IS_WINDOWS 0
+#endif
+
+#ifdef __APPLE__
+#  define IS_APPLE 1
+#else
+#  define IS_APPLE 0
 #endif
 
 #include <stdbool.h>
@@ -64,7 +76,7 @@
 #endif
 
 #ifndef BIN
-#  ifdef _WIN32
+#  if IS_WINDOWS
 #    define BIN ".\\bin\\MultiSim.exe"
 #  else
 #    define BIN "./bin/MultiSim"
@@ -72,7 +84,8 @@
 #endif
 
 // mkdir()
-#ifdef _WIN32
+#if IS_WINDOWS
+#  include <direct.h>
 #  define MKDIR(_PATH) _mkdir(_PATH)
 #else
 #  define MKDIR(_PATH) mkdir(_PATH, 0755)
@@ -93,27 +106,28 @@ int main(int argc, char** argv) {
     bool release_mode = false, mingw = false, run = false;
     const char* program = argv[0];
 
-    #define BIN_FOLDER "." PATH_SEP "bin"
+#define BIN_FOLDER "." PATH_SEP "bin"
     if (!path_is_dir(BIN_FOLDER)) {
         INFO("Creating dir: " BIN_FOLDER);
         MKDIR(BIN_FOLDER);
     }
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "release") == 0) {
+        if (streq(argv[i], "release")) {
             release_mode = true;
         }
-        else if (strcmp(argv[i], "debug") == 0) {
+        else if (streq(argv[i], "debug")) {
             release_mode = false;
         }
-        else if (strcmp(argv[i], "mingw") == 0) {
+        else if (streq(argv[i], "mingw")) {
             mingw = true;
         }
-        else if (strcmp(argv[i], "run") == 0) {
+        else if (streq(argv[i], "run")) {
             run = true;
         }
         else {
-            WARN("Unkown argument: %s", argv[i]);
+            ERRO("Unkown argument: %s", argv[i]);
+            return 1;
         }
     }
 
@@ -125,32 +139,41 @@ int main(int argc, char** argv) {
     if (release_mode) {
         strcat(cflags, CFLAGS_RELEASE);
         if (mingw) {
-            strcat(cflags, " -mwindows ");
+            strcat(cflags, " -mwindows "); // remove console window
         }
     } else {
-        strcat(cflags, " -DDEBUG ");
+        strcat(cflags, " -DDEBUG -w "); // add extra debug info
     }
 
-
-    if (!mingw)
-#if defined(_WIN32)
-        strcat(cflags, CFLAGS_WIN);
-#elif defined(__APPLE__)
-        strcat(cflags, CFLAGS_APPLE);
-#endif
+    if (!mingw) {
+        if (IS_WINDOWS) strcat(cflags, CFLAGS_WIN);
+        else if (IS_APPLE) strcat(cflags, CFLAGS_APPLE);
+    }
 
     strcat(cflags, RAYFLAGS);
 
     char command[2056];
 
-    INFO("CMD(winresource): %s", resource_command);
-    int resource_success = system(resource_command);
+    if (mingw || IS_WINDOWS) {
+        INFO("CMD(winresource): %s", resource_command);
+        int resource_success = system(resource_command);
+
+        if (resource_success != 0) {
+            ERRO("resource command `%s` exited with non-zero code %d.", resource_command, resource_success);
+            return 1;
+        }
+
+        printf("\n=================================\n");
+    }
 
     snprintf(
         command, sizeof command,
         "%s %s -o %s %s",
         cc, MAIN, BIN, cflags
     );
+
+    INFO("CC     : %s", cc);
+    INFO("CFLAGS : %s\n", cflags);
 
     INFO("CMD: %s", command);
     int comp_result = system(command);
@@ -161,15 +184,14 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (comp_result != 0) {
-        ERRO("Compile command `%s` exited with non-zero code %d", command, comp_result);
-        INFO("Aborting...");
-        return 1;
-    }
-
     if (run) {
-        INFO("Running " BIN);
-        system(BIN);
+        if (mingw) {
+            ERRO("Can't combine 'run' with 'mingw'. You can run the executable with wine or some other emulation program, if desired.");
+        }
+        else {
+            INFO("Running " BIN);
+            system(BIN);
+        }
     }
 
     return 0;

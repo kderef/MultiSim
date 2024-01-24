@@ -40,13 +40,13 @@ typedef enum {
 #define Theme GolTheme
 
 static inline void theme_toggle_bolus(Theme* theme) {
-    *theme = (*theme == GOLTheme_Bolus)? GOLTheme_Default : GOLTheme_Bolus;
+    *theme = (*theme == GOLTheme_Bolus) ? GOLTheme_Default : GOLTheme_Bolus;
 }
 
 static inline void theme_cycle(Theme* theme) {
-    *theme = (*theme == GOLTheme_Bolus)?
-        GOLTheme_Default : ((*theme) + 1 == GOLTheme_Bolus)?
-            GOLTheme_Default : (*theme) + 1;
+    *theme = (*theme == GOLTheme_Bolus) ?
+        GOLTheme_Default : ((*theme) + 1 == GOLTheme_Bolus) ?
+        GOLTheme_Default : (*theme) + 1;
 }
 
 static const ThemeStyle THEMES[] = {

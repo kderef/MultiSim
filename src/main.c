@@ -1,4 +1,4 @@
-#define VERSION "2.0.5"
+#define VERSION "2.0.6-dev"
 
 // reduce file size on windows
 #ifdef _WIN32
@@ -11,10 +11,53 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
+#include <signal.h>
+#include <string.h>
 
 #include "ui/selector.c"
 #include "ui/windowicon.c"
 #include "ui/splashtext.c"
+
+static Selector* selector_cleanup = NULL;
+
+void strupper(char* s) {
+    const char OFFSET = 'a' - 'A';
+    while (*s) {
+        *s = (*s >= 'a' && *s <= 'z') ? *s -= OFFSET : *s;
+        s++;
+    }
+}
+
+/// Handle signal `sig` and clean resources up.
+void signal_handler(int sig) {
+    char signal_str[64] = "SIG";
+#ifdef _WIN32
+    char* _siglist[] = {
+        [SIGABRT] = "SIGABRT",
+        [SIGFPE] = "SIGFPE",
+        [SIGILL] = "SIGILL",
+        [SIGINT] = "SIGINT",
+        [SIGSEGV] = "SIGSEGV",
+        [SIGTERM] = "SIGTERM"
+    };
+    strcpy(signal_str, _siglist[sig]);
+#else
+    strcat(signal_str, strsignal(sig));
+    strupper(signal_str + 3);
+#endif
+
+    // log the signal
+    fprintf(stderr, "\nWARNING: Signal SIG%s caught, cleaning up...\n======================================================\n", signal_str);
+
+    SetTraceLogLevel(LOG_ALL);
+
+    // cleanup
+    CloseWindow();
+    selector_deinit(selector_cleanup);
+    unload_default_font();
+
+    exit(0);
+}
 
 int main(void) {
     // seed random
@@ -22,11 +65,6 @@ int main(void) {
 
     // initialize audio backend
     InitAudioDevice();
-
-    // if release mode, disable all logging messages except for LOG_ERROR
-#ifndef DEBUG
-    SetTraceLogLevel(LOG_ERROR);
-#endif
 
     // raylib initialization
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -49,15 +87,23 @@ int main(void) {
     load_random_splash_text();
 
     // the selector manages all the games and renders the title screen
-    selector_init();
+    Selector* selector = selector_init();
+    selector_cleanup = selector;
+
+    signal(SIGINT, signal_handler);
+
+    // if release mode, disable all logging messages except for LOG_ERROR
+#ifndef DEBUG
+    SetTraceLogLevel(LOG_ERROR);
+#endif
 
     while (!WindowShouldClose()) {
-        selector_update();
+        selector_update(selector);
     }
 
     // close the window and unload all assets (textures, images, etc.)
     CloseWindow();
-    selector_deinit();
+    selector_deinit(selector);
     unload_default_font();
 
     return 0;

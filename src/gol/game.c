@@ -44,20 +44,21 @@ void gol_state_toggle(GameOfLife* ptr) {
     if (ptr->state == GameState_Paused) {
         ptr->iterations = 0;
         ptr->state = GameState_Running;
-    } else {
+    }
+    else {
         ptr->state = GameState_Paused;
     }
 }
 
 GameOfLife gol_new() {
-    GameOfLife gol = {0};
+    GameOfLife gol = { 0 };
     gol.update_frame_cap = GOL_DEFAULT_UPDATE_CAP;
     gol.universe = universe_new(GOL_GRID_W, GOL_GRID_H);
 
     Image bolus_png = LoadImageFromMemory(".png", bolus_data, bolus_size);
     gol.bolus = LoadTextureFromImage(bolus_png);
     UnloadImage(bolus_png);
-    
+
     gol.state = GameState_Paused;
     gol.theme = GOLTheme_Default;
     gol.prev_theme = -1;
@@ -74,7 +75,7 @@ void game_of_life_deinit(GameOfLife* ptr) {
 bool gol_screen_size_changed(GameOfLife* gol) {
     bool changed = global_state.screen_w != gol->window_width || global_state.screen_w != gol->window_height;
 
-    gol->window_width  = global_state.screen_w;
+    gol->window_width = global_state.screen_w;
     gol->window_height = global_state.screen_h;
 
     return changed;
@@ -92,7 +93,7 @@ SelectedGame gol_update(GameOfLife* gol) {
     static bool mouse_in_grid;
 
     dt = GetFrameTime();
-    passed_time = (passed_time >= gol->update_frame_cap)? 0.0f : passed_time + dt;
+    passed_time = (passed_time >= gol->update_frame_cap) ? 0.0f : passed_time + dt;
 
     // handle window size
     size_changed = gol_screen_size_changed(gol);
@@ -128,133 +129,134 @@ SelectedGame gol_update(GameOfLife* gol) {
     }
 
     switch (key) {
-        case 0: break;
-        case KEY_C: {
-            universe_fill(&(gol->universe), Dead);
-        } break;
-        case KEY_A: {
-            universe_fill(&(gol->universe), Alive);
-        } break;
-        case KEY_T: {
-            gol->prev_theme = gol->theme;
-            theme_cycle(&(gol->theme));
-        } break;
-        case KEY_I: {
-            universe_invert(&(gol->universe));
-        } break;
-        case KEY_R: {
-            universe_fill_random(&(gol->universe));
-        } break;
-        case KEY_B: {
-            gol->prev_theme = gol->theme;
-            theme_toggle_bolus(&(gol->theme));
-        } break;
-        case KEY_SPACE: {
-            gol_state_toggle(gol);
-        } break;
-        case KEY_ESCAPE: return Selected_None;
-        case KEY_F5: {
-            global_state.show_fps = !global_state.show_fps;
-        } break;
-        case KEY_F11: {
-            ToggleFullscreen();
-        } break;
-        default: {}
+    case 0: break;
+    case KEY_C: {
+        universe_fill(&(gol->universe), Dead);
+    } break;
+    case KEY_A: {
+        universe_fill(&(gol->universe), Alive);
+    } break;
+    case KEY_T: {
+        gol->prev_theme = gol->theme;
+        theme_cycle(&(gol->theme));
+    } break;
+    case KEY_I: {
+        universe_invert(&(gol->universe));
+    } break;
+    case KEY_R: {
+        universe_fill_random(&(gol->universe));
+    } break;
+    case KEY_B: {
+        gol->prev_theme = gol->theme;
+        theme_toggle_bolus(&(gol->theme));
+    } break;
+    case KEY_SPACE: {
+        gol_state_toggle(gol);
+    } break;
+    case KEY_ESCAPE: return Selected_None;
+    case KEY_F5: {
+        global_state.show_fps = !global_state.show_fps;
+    } break;
+    case KEY_F11: {
+        ToggleFullscreen();
+    } break;
+    default: {}
     }
 
     if (gol->prev_theme != gol->theme) {
         theme_destructure(gol->theme, &theme_style);
         gol->prev_theme = gol->theme;
     }
-        
+
     switch (gol->state) {
-        case GameState_Running: {
-            if (passed_time >= gol->update_frame_cap) {
-                universe_update_cells(&(gol->universe));
-                passed_time = 0.0;
-                gol->iterations += 1;
-            }
-        } break;
-        case GameState_Paused: {
-            if (!mouse_in_grid) break;
-            if (mouse_left_down) {
-                universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
-            }
-            else if (mouse_right_down) {
-                universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Dead);
-            }
+    case GameState_Running: {
+        if (passed_time >= gol->update_frame_cap) {
+            universe_update_cells(&(gol->universe));
+            passed_time = 0.0;
+            gol->iterations += 1;
         }
-        default: {}
+    } break;
+    case GameState_Paused: {
+        if (!mouse_in_grid) break;
+        if (mouse_left_down) {
+            universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
+        }
+        else if (mouse_right_down) {
+            universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Dead);
+        }
+    }
+    default: {}
     }
 
     BeginDrawing();
     ClearBackground(theme_style.bg_color);
 
     switch (gol->theme) {
-        case GOLTheme_Midnight: {
-            Color midnight_fg_color = color(0, 0, 100);
-            for (uint32_t y = 0; y < gol->universe.height; y++) {
-                for (uint32_t x = 0; x < gol->universe.width; x++) {
-                    DrawRectangle(
-                        x * GOL_SCALE,
-                        y * GOL_SCALE,
-                        GOL_SCALE,
-                        GOL_SCALE,
-                        universe_get(&(gol->universe), x, y)?
-                            color(x, y, 100) :
-                            theme_style.bg_color
-                    );
-                    if (universe_get(&(gol->universe), x, y)) {
-                        midnight_fg_color.r = x;
-                        midnight_fg_color.g = y;
-                        DrawTextD(
-                            theme_style.fg_char,
-                            x * GOL_SCALE,
-                            y * GOL_SCALE,
-                            (float)GOL_SCALE,
-                            midnight_fg_color
-                        );
-                    } else {
-                        DrawTextD(
-                            theme_style.bg_char,
-                            x * GOL_SCALE,
-                            y * GOL_SCALE,
-                            (float)GOL_SCALE,
-                            theme_style.bg_char_color
-                        );
-                    }
-                }
-            }
-        } break;
-        case GOLTheme_Bolus: {
-            for (uint32_t y = 0; y < gol->universe.height; y++) {
-                for (uint32_t x = 0; x < gol->universe.width; x++) {
-                    if (universe_get(&(gol->universe), x, y)) {
-                        DrawTextureEx(
-                            gol->bolus,
-                            vec2(x * GOL_SCALE, y * GOL_SCALE),
-                            0.0,
-                            0.5,
-                            WHITE
-                        );
-                    }
-                }
-            }
-        } break;
-        default: {
-            for (uint32_t y = 0; y < gol->universe.height; y++) {
-                for (uint32_t x = 0; x < gol->universe.width; x++) {
-                    bool alive = universe_get(&(gol->universe), x, y);
+    case GOLTheme_Midnight: {
+        Color midnight_fg_color = color(0, 0, 100);
+        for (uint32_t y = 0; y < gol->universe.height; y++) {
+            for (uint32_t x = 0; x < gol->universe.width; x++) {
+                DrawRectangle(
+                    x * GOL_SCALE,
+                    y * GOL_SCALE,
+                    GOL_SCALE,
+                    GOL_SCALE,
+                    universe_get(&(gol->universe), x, y) ?
+                    color(x, y, 100) :
+                    theme_style.bg_color
+                );
+                if (universe_get(&(gol->universe), x, y)) {
+                    midnight_fg_color.r = x;
+                    midnight_fg_color.g = y;
                     DrawTextD(
-                        alive? theme_style.fg_char : theme_style.bg_char,
+                        theme_style.fg_char,
                         x * GOL_SCALE,
                         y * GOL_SCALE,
                         (float)GOL_SCALE,
-                        alive? theme_style.fg_color : theme_style.bg_char_color
+                        midnight_fg_color
+                    );
+                }
+                else {
+                    DrawTextD(
+                        theme_style.bg_char,
+                        x * GOL_SCALE,
+                        y * GOL_SCALE,
+                        (float)GOL_SCALE,
+                        theme_style.bg_char_color
                     );
                 }
             }
         }
+    } break;
+    case GOLTheme_Bolus: {
+        for (uint32_t y = 0; y < gol->universe.height; y++) {
+            for (uint32_t x = 0; x < gol->universe.width; x++) {
+                if (universe_get(&(gol->universe), x, y)) {
+                    DrawTextureEx(
+                        gol->bolus,
+                        vec2(x * GOL_SCALE, y * GOL_SCALE),
+                        0.0,
+                        0.5,
+                        WHITE
+                    );
+                }
+            }
+        }
+    } break;
+    default: {
+        for (uint32_t y = 0; y < gol->universe.height; y++) {
+            for (uint32_t x = 0; x < gol->universe.width; x++) {
+                bool alive = universe_get(&(gol->universe), x, y);
+                DrawTextD(
+                    alive ? theme_style.fg_char : theme_style.bg_char,
+                    x * GOL_SCALE,
+                    y * GOL_SCALE,
+                    (float)GOL_SCALE,
+                    alive ? theme_style.fg_color : theme_style.bg_char_color
+                );
+            }
+        }
+    }
     }
 
     GuiDrawRectangle(
@@ -262,22 +264,22 @@ SelectedGame gol_update(GameOfLife* gol) {
         1, theme_style.fg_color, theme_style.bg_color
     );
 
-    #define ICON_SIZE 38
-    #define ICON_PADDING 1
+#define ICON_SIZE 38
+#define ICON_PADDING 1
 
     const int icon_y = global_state.screen_h - ICON_SIZE - ICON_PADDING;
     int icon_padding_x = ICON_PADDING;
 
-    const int slider_width = ICON_SIZE*3.5;
+    const int slider_width = ICON_SIZE * 3.5;
 
     // pause button
     if (GuiButton(
         rect(slider_width + 70, icon_y, ICON_SIZE, ICON_SIZE),
-        (gol->state == GameState_Paused)? "#131#" : "#132#"
+        (gol->state == GameState_Paused) ? "#131#" : "#132#"
     )) gol_state_toggle(gol);
 
     GuiSliderPro(
-        rect(ICON_PADDING + 65, icon_y + (14.25/2) - ICON_PADDING, slider_width, ICON_SIZE*0.75),
+        rect(ICON_PADDING + 65, icon_y + (14.25 / 2) - ICON_PADDING, slider_width, ICON_SIZE * 0.75),
         "SPEED", "", &(gol->speed_slider_value), 0.0f, GOL_SPEED_SLIDER_MAX,
         8
     );

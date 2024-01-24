@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "const.h"
 #include <stdlib.h>
+#include <assert.h>
 
 typedef enum SelectedGame {
     Selected_None = 0,
@@ -30,9 +31,11 @@ typedef struct GlobalState {
     bool right_mouse_down;
     float mouse_wheel_move;
 } GlobalState;
+
 static GlobalState global_state = {0};
 
-void update_global_state() {
+/// Update the global state, called once at the beginning of each frame
+void update_global_state(void) {
     global_state.screen_w = GetScreenWidth();
     global_state.screen_h = GetScreenHeight();
     global_state.left_mouse_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
@@ -45,7 +48,7 @@ void update_global_state() {
 #define GLOBAL_TEXT_BUF_SIZE (256 + 1)
 static char global_text_buf[GLOBAL_TEXT_BUF_SIZE];
 
-// global snprintf to global_text_buf
+/// global snprintf to global_text_buf
 #define g_sprintf(FMT, ...) snprintf(global_text_buf, GLOBAL_TEXT_BUF_SIZE, FMT, ##__VA_ARGS__)
 
 static const char* SELECTED_TITLES[] = {

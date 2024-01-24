@@ -45,7 +45,7 @@ Pong pong_new() {
     p.ball.radius = BALL_RADIUS;
     p.ball.pos = center;
     p.ball.velocity = BALL_DEFAULT_NEG_VELOCITY; //BALL_DEFAULT_VELOCITY;
-    p.score = (Score) {0, 0};
+    p.score = (Score){ 0, 0 };
 
     p.paddle_left = rect(
         PADDLE_PADDING, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT
@@ -87,14 +87,14 @@ void pong_reset_scored(Pong* p, bool left_scored) {
     p->paddle_right.y = paddle_y;
     p->paddle_left.y = paddle_y;
     p->ball.pos = vec2(
-        left_scored?
-            PADDLE_PADDING*2 + PADDLE_WIDTH :
-            p->window_size.x - PADDLE_PADDING*2 - PADDLE_WIDTH,
+        left_scored ?
+        PADDLE_PADDING * 2 + PADDLE_WIDTH :
+        p->window_size.x - PADDLE_PADDING * 2 - PADDLE_WIDTH,
         p->window_size.y / 2
     );
 
-    p->ball.velocity.x = left_scored? BALL_DEFAULT_V : -BALL_DEFAULT_V;
-    p->ball.velocity.y = GetRandomValue(0, 1)? BALL_DEFAULT_V : -BALL_DEFAULT_V;
+    p->ball.velocity.x = left_scored ? BALL_DEFAULT_V : -BALL_DEFAULT_V;
+    p->ball.velocity.y = GetRandomValue(0, 1) ? BALL_DEFAULT_V : -BALL_DEFAULT_V;
 
     p->countdown_passed = 0.0f;
 
@@ -111,14 +111,14 @@ void pong_reset(Pong* p) {
     p->paddle_right.y = paddle_y;
     p->paddle_left.y = paddle_y;
     p->ball.pos = vec2(
-        left?
-            PADDLE_PADDING*2 + PADDLE_WIDTH :
-            p->window_size.x - PADDLE_PADDING*2 - PADDLE_WIDTH,
+        left ?
+        PADDLE_PADDING * 2 + PADDLE_WIDTH :
+        p->window_size.x - PADDLE_PADDING * 2 - PADDLE_WIDTH,
         p->window_size.y / 2
     );
 
-    p->ball.velocity.x = left? BALL_DEFAULT_V : -BALL_DEFAULT_V;
-    p->ball.velocity.y = GetRandomValue(0, 1)? BALL_DEFAULT_V : -BALL_DEFAULT_V;
+    p->ball.velocity.x = left ? BALL_DEFAULT_V : -BALL_DEFAULT_V;
+    p->ball.velocity.y = GetRandomValue(0, 1) ? BALL_DEFAULT_V : -BALL_DEFAULT_V;
 
     p->countdown_passed = 0.0f;
 }
@@ -129,7 +129,7 @@ static inline void pong_draw_help(Pong* p) {
     // TODO
 
     GuiDrawRectangle(rect(20, 20, global_state.screen_w - 40, global_state.screen_h - 40), 1, GRAY, color(20, 20, 20));
-    DrawTextD("Pong Help", global_state.screen_w/2 - 60, 40, FONT_L, GOLD);
+    DrawTextD("Pong Help", global_state.screen_w / 2 - 60, 40, FONT_L, GOLD);
 
     GuiDrawText("Left Paddle controls:", rect(50, 150, 200, 20), TEXT_ALIGN_LEFT, GOLD);
     GuiDrawText("W: up", rect(50, 170, 200, 20), TEXT_ALIGN_LEFT, WHITE);
@@ -144,7 +144,7 @@ static inline void pong_draw_help(Pong* p) {
     GuiDrawText("R      : reset game", rect(controls_right, 170, 200, 20), TEXT_ALIGN_LEFT, WHITE);
     GuiDrawText("Space: pause/unpause game", rect(controls_right, 190, 200, 20), TEXT_ALIGN_LEFT, WHITE);
 
-    if (GuiButton(rect(global_state.screen_w/2 - 100, global_state.screen_h - 100, 200, 50), "Exit help")) {
+    if (GuiButton(rect(global_state.screen_w / 2 - 100, global_state.screen_h - 100, 200, 50), "Exit help")) {
         p->state = GameState_Running;
     }
 }
@@ -169,7 +169,7 @@ static inline void pong_draw(Pong* p) {
     ClearBackground(BLACK);
 
     DrawLine(line_x, p->window_size.y, line_x, 0.0f, DARKGRAY);
-    
+
     g_sprintf("%u", p->score.left);
     DrawTextD(
         global_text_buf, line_x - 75.0,
@@ -198,10 +198,11 @@ static inline void pong_draw(Pong* p) {
         if (GuiButton(
             rect(global_state.screen_w - ICON_SIZE - 2, 2, ICON_SIZE, ICON_SIZE),
             "#193#")
-        ) {
+            ) {
             p->state = GameState_Help;
         }
-    } else {
+    }
+    else {
         passed_time = 0.0f;
         draw_help_btn = false;
     }
@@ -256,9 +257,10 @@ SelectedGame pong_update(Pong* p) {
 
     if (p->countdown_passed >= 0.0f) {
         p->countdown_passed =
-            (p->countdown_passed >= 3.0f)?
+            (p->countdown_passed >= 3.0f) ?
             -1.0f : p->countdown_passed + p->dt;
-    } else {
+    }
+    else {
         fixed_paddle_speed = PADDLE_SPEED * p->dt;
         if (IsKeyDown(KEY_W)) {
             p->paddle_left.y = Clamp(
@@ -295,14 +297,15 @@ SelectedGame pong_update(Pong* p) {
 
         static float x, y, size = 125.0;
         x = p->window_size.x / 2.0f - 30.0f;
-        y = p->window_size.y / 2.0f- 70.0f;
+        y = p->window_size.y / 2.0f - 70.0f;
 
         if (p->countdown_passed <= 1.0f)
             DrawTextD("3", x, y, size, GREEN);
         else if (p->countdown_passed <= 2.0f)
             DrawTextD("2", x, y, size, YELLOW);
         else DrawTextD("1", x + 12, y, size, RED);
-    } else {
+    }
+    else {
         p->ball.pos.x += p->ball.velocity.x * p->dt;
         p->ball.pos.y += p->ball.velocity.y * p->dt;
 
@@ -332,7 +335,7 @@ void pong_handle_collision(Pong* p) {
     }
 
     // left or right paddle
-    Paddle paddle = (p->ball.velocity.x < 0.0)? p->paddle_left : p->paddle_right;
+    Paddle paddle = (p->ball.velocity.x < 0.0) ? p->paddle_left : p->paddle_right;
 
     // collision
     if (CheckCollisionCircleRec(
