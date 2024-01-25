@@ -1,4 +1,3 @@
-<img src="assets/icon/icon-big.png" width="200" height="200"></img>
 # MultiSim  
 ##### *A game collection written in C using [Raylib](https://raylib.com)*.  
 
