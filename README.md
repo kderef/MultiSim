@@ -2,7 +2,7 @@
 # MultiSim  
 ##### *A game collection written in C using [Raylib](https://raylib.com)*.  
 
-<img src="assets/icon/showcase-1.png" width="200" height="200"></img>
+<img src="assets/showcase-1.png" width="200"></img>
 
 ---
 ## Structure  
