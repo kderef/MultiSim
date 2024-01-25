@@ -3,6 +3,12 @@
 
 ![showcase-1](assets/showcase-1.png)
 
+#### List of Games
+- [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
+- [DvD bouncing sim](https://knowyourmeme.com/memes/bouncing-dvd-logo)
+- [Pong](https://en.wikipedia.org/wiki/Pong)
+- **(WIP)** [Minecraf](https://minecraft.net) Clone
+
 ---
 ## Structure  
 ```
