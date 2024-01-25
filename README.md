@@ -1,7 +1,7 @@
 # MultiSim  
 ##### *A game collection written in C using [Raylib](https://raylib.com)*.  
 
-<img src="assets/showcase-1.png"></img>
+![showcase-1](assets/showcase-1.png)
 
 ---
 ## Structure  
