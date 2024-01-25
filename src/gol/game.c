@@ -88,7 +88,7 @@ SelectedGame gol_update(GameOfLife* gol) {
     static int key;
     static ThemeStyle theme_style;
     // dt shit
-    static bool mouse_left_down, mouse_right_down;
+    static bool mouse_left_down, mouse_right_down, show_help_window;
     static float passed_time;
     static bool mouse_in_grid;
 
@@ -177,7 +177,7 @@ SelectedGame gol_update(GameOfLife* gol) {
         }
     } break;
     case GameState_Paused: {
-        if (!mouse_in_grid) break;
+        if ((!mouse_in_grid) || show_help_window) break;
         if (mouse_left_down) {
             universe_set(&(gol->universe), (size_t)(gol->mouse_pos.x), (size_t)(gol->mouse_pos.y), Alive);
         }
@@ -290,7 +290,13 @@ SelectedGame gol_update(GameOfLife* gol) {
 
     if (GuiButton(
         rect(icon_padding_x, icon_y, ICON_SIZE, ICON_SIZE), "#159#"
-    )) return Selected_None;
+    )) return Selected_None; // Leave
+
+    if (GuiButton(
+        rect(icon_padding_x -= ICON_SIZE, icon_y, ICON_SIZE, ICON_SIZE),
+         "#193#"
+    )) show_help_window = !show_help_window;
+
 
     if (GuiButton(
         rect(
@@ -324,6 +330,48 @@ SelectedGame gol_update(GameOfLife* gol) {
             GOL_SCALE,
             theme_style.ac_color
         );
+    }
+
+    if (show_help_window) {
+        static Rectangle bounds_win = rect(50, 50, 0, 0);
+        bounds_win.width = global_state.screen_w - 100;
+        bounds_win.height = global_state.screen_h - 100 - GOL_STATUS_BAR_HEIGHT;
+        if (GuiWindowBox(
+            bounds_win, "Help"
+        )) show_help_window = false;
+
+        const int padx = 50;
+        const int pady = ICON_SIZE + 10;
+
+        Rectangle bounds;
+        // draw help info
+        bounds = rect(bounds_win.x + padx, bounds_win.y + pady, ICON_SIZE, ICON_SIZE);
+        GuiButton(bounds, "#26#");
+        bounds.x += padx;
+        bounds.width *= 20;
+        //bounds.x += ICON_SIZE*1.5;
+        GuiLabel(bounds, TextFormat("Cycle the theme (current: %s)", theme_style.name));
+
+        bounds = rect(bounds_win.x + padx, bounds_win.y + pady*2, ICON_SIZE, ICON_SIZE);
+
+        GuiButton(bounds, "#194#");
+        bounds.x += padx;
+        bounds.width *= 10;
+        GuiLabel(bounds, "Fill the grid with random cells");
+    
+        bounds = rect(bounds_win.x + padx, bounds_win.y + pady*3, ICON_SIZE, ICON_SIZE);
+        
+        GuiButton(bounds, "#143#");
+        bounds.x += padx;
+        bounds.width *= 10;
+        GuiLabel(bounds, "Clear the grid by deleting all cells");
+
+        bounds = rect(bounds_win.x + padx, bounds_win.y + pady*4, ICON_SIZE, ICON_SIZE);
+        
+        GuiButton(bounds, "#29#");
+        bounds.x += padx;
+        bounds.width *= 10;
+        GuiLabel(bounds, "Fill the grid with all live cells");
     }
 
     return Selected_GOL;

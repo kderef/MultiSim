@@ -25,8 +25,8 @@ static const GuiStyleProp darkStyleProps[DARK_STYLE_PROPS_COUNT] = {
     { 0, 20, 0x00000018 },    // DEFAULT_TEXT_LINE_SPACING 
     { 1, 5, 0xf7f7f7ff },     // LABEL_TEXT_COLOR_FOCUSED 
     { 1, 8, 0x898989ff },     // LABEL_TEXT_COLOR_PRESSED 
-    { 4, 5, 0xb0b0b0ff },     // SLIDER_TEXT_COLOR_FOCUSED 
-    { 5, 5, 0x848484ff },     // PROGRESSBAR_TEXT_COLOR_FOCUSED 
+    { 4, 5, 0xb0b0b0ff },     // SLIDER_TEXT_COLOR_FOCUSED
+    { 5, 5, 0x848484ff },     // PROGRESSBAR_TEXT_COLOR_FOCUSED  
     { 9, 5, 0xf5f5f5ff },     // TEXTBOX_TEXT_COLOR_FOCUSED 
     { 10, 5, 0xf6f6f6ff },    // VALUEBOX_TEXT_COLOR_FOCUSED 
 };

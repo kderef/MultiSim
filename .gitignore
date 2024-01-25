@@ -4,6 +4,7 @@ nob*
 .DS_Store
 *.exe
 *.out
+*.log
 !nob.h
 !nob.c
 Legacy-rust-version/target

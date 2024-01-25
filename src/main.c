@@ -7,6 +7,7 @@
 
 #include "raylib.h"
 #include "const.h"
+#include "panic.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -28,6 +29,38 @@ void strupper(char* s) {
     }
 }
 
+/// Handle 'panic' (global variable paniced = true)
+void panic_handler(Selector* s) {
+    char dump_buf[4112] = "";
+    char dump_buf_c[2056] = "";
+
+    SetTraceLogLevel(LOG_ALL);
+
+    fprintf(stderr, "[PANIC] at location %s, message: %s\n", panic_loc, panic_msg);
+    fprintf(stderr, "--> Cleaning up...\n");
+
+    // cleanup
+    CloseWindow();
+    selector_deinit(s);
+    unload_default_font();
+
+    char log_file[FILENAME_MAX];
+    snprintf(log_file, sizeof log_file, "multisim-%lld.log", time(NULL));
+
+    fprintf(stderr, "\nWriting to log file \"%s\"...\n", log_file);
+
+    #define DUMP_SPRINTF(...) snprintf(dump_buf_c, sizeof dump_buf_c, __VA_ARGS__); strcat(dump_buf, dump_buf_c)
+
+    DUMP_SPRINTF("*** PANIC REPORT ***\n");
+    DUMP_SPRINTF("* Location: %s\n", panic_loc);
+    DUMP_SPRINTF("* Message:  %s\n", panic_msg);
+    DUMP_SPRINTF("* File:     %s\n", log_file);
+
+    SaveFileText(log_file, dump_buf);
+
+    exit(0);
+}
+
 /// Handle signal `sig` and clean resources up.
 void signal_handler(int sig) {
     char signal_str[64] = "SIG";
@@ -44,10 +77,9 @@ void signal_handler(int sig) {
 #else
     strcat(signal_str, strsignal(sig));
     strupper(signal_str + 3);
+    
 #endif
-
-    // log the signal
-    fprintf(stderr, "\nWARNING: Signal SIG%s caught, cleaning up...\n======================================================\n", signal_str);
+    fprintf(stderr, "\nWARNING: Signal %s caught, cleaning up...\n======================================================\n", signal_str);
 
     SetTraceLogLevel(LOG_ALL);
 
@@ -55,7 +87,7 @@ void signal_handler(int sig) {
     CloseWindow();
     selector_deinit(selector_cleanup);
     unload_default_font();
-
+        
     exit(0);
 }
 
@@ -91,6 +123,7 @@ int main(void) {
     selector_cleanup = selector;
 
     signal(SIGINT, signal_handler);
+    signal(SIGKILL, signal_handler);
 
     // if release mode, disable all logging messages except for LOG_ERROR
 #ifndef DEBUG
@@ -98,6 +131,7 @@ int main(void) {
 #endif
 
     while (!WindowShouldClose()) {
+        if (paniced) panic_handler(selector);
         selector_update(selector);
     }
 

@@ -11,6 +11,9 @@
 #include "../gamestate.h"
 #include "../const.h"
 
+// for panic()
+#include "../panic.h"
+
 #include <stdlib.h>
 #include <memory.h>
 
@@ -29,6 +32,11 @@ Universe universe_new(size_t init_width, size_t init_height) {
     uvs.size = uvs.width * uvs.height;
     uvs.cells = (Cell*)calloc(uvs.size, sizeof(Cell));
     uvs.cells_copy = (Cell*)calloc(uvs.size, sizeof(Cell));
+
+    if (!(uvs.cells) || !(uvs.cells_copy)) {
+        panic("Initial allocation of universe_new failed");
+    }
+
     return uvs;
 }
 
@@ -70,10 +78,18 @@ void universe_resize(Universe* uvs, size_t new_width, size_t new_height) {
 
     free(uvs->cells_copy);
     uvs->cells_copy = (Cell*)calloc(to_size, sizeof(Cell));
+    if (uvs->cells_copy == NULL) {
+        panic("Allocating cells_copy in universe_resize failed.");
+    }
+
     memcpy(uvs->cells_copy, uvs->cells, uvs->size);
 
     free(uvs->cells);
     uvs->cells = (Cell*)calloc(to_size, sizeof(Cell));
+
+    if (uvs->cells == NULL) {
+        panic("Allocating cells in universe_resize failed.");
+    }
 
     for (size_t y = 0; y < min(to_height, new_height); y++) {
         for (size_t x = 0; x < min(to_width, new_width); x++) {
