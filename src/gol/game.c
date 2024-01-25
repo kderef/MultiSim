@@ -50,26 +50,32 @@ void gol_state_toggle(GameOfLife* ptr) {
     }
 }
 
-GameOfLife gol_new() {
-    GameOfLife gol = { 0 };
-    gol.update_frame_cap = GOL_DEFAULT_UPDATE_CAP;
-    gol.universe = universe_new(GOL_GRID_W, GOL_GRID_H);
+GameOfLife* gol_alloc() {
+    GameOfLife* gol = (GameOfLife*) calloc(1, sizeof(GameOfLife));
+
+    if (!gol) {
+        panic("Initializing game of life failed.");
+    }
+
+    gol->update_frame_cap = GOL_DEFAULT_UPDATE_CAP;
+    gol->universe = universe_new(GOL_GRID_W, GOL_GRID_H);
 
     Image bolus_png = LoadImageFromMemory(".png", bolus_data, bolus_size);
-    gol.bolus = LoadTextureFromImage(bolus_png);
+    gol->bolus = LoadTextureFromImage(bolus_png);
     UnloadImage(bolus_png);
 
-    gol.state = GameState_Paused;
-    gol.theme = GOLTheme_Default;
-    gol.prev_theme = -1;
-    gol.speed_slider_value = GOL_SPEED_SLIDER_MAX - GOL_DEFAULT_UPDATE_CAP;
+    gol->state = GameState_Paused;
+    gol->theme = GOLTheme_Default;
+    gol->prev_theme = -1;
+    gol->speed_slider_value = GOL_SPEED_SLIDER_MAX - GOL_DEFAULT_UPDATE_CAP;
 
     return gol;
 }
 
-void game_of_life_deinit(GameOfLife* ptr) {
+void gol_free(GameOfLife* ptr) {
     UnloadTexture(ptr->bolus);
     universe_deinit(&(ptr->universe));
+    free(ptr);
 }
 
 bool gol_screen_size_changed(GameOfLife* gol) {

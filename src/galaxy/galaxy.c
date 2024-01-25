@@ -7,18 +7,20 @@
 
 static bool mouse_disabled = false;
 
-Galaxy galaxy_new(void) {
-    return (Galaxy) {
-        .camera = (Camera3D){
+Galaxy* galaxy_alloc(void) {
+    Galaxy* g = (Galaxy*) malloc(sizeof(Galaxy));
+    g->camera = (Camera3D){
             .fovy = 90.0,
             .projection = CAMERA_PERSPECTIVE,
             .up = vec3(0, 100, 0),
             .position = vec3(0, GX_CAMERA_DEFAULT_Y, 0),
             .target = vec3(100, 10, 100)
-        },
-            .velocity = vec3(0, 0, 0),
-            .dash_bar = 0.0f,
     };
+
+    g->velocity = VEC3_ZERO;
+    g->dash_bar = 0.0f;
+
+    return g;
 }
 
 static inline
@@ -81,11 +83,12 @@ SelectedGame galaxy_update(Galaxy* g) {
     return Selected_GALAXY;
 }
 
-void galaxy_deinit(Galaxy* g) {
+void galaxy_free(Galaxy* g) {
     if (mouse_disabled) {
         mouse_disabled = false;
         DisableCursor();
     }
+    free(g);
 }
 
 #endif

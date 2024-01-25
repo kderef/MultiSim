@@ -41,11 +41,11 @@ void panic_handler(Selector* s) {
 
     // cleanup
     CloseWindow();
-    selector_deinit(s);
+    selector_free(s);
     unload_default_font();
 
     char log_file[FILENAME_MAX];
-    snprintf(log_file, sizeof log_file, "multisim-%lld.log", time(NULL));
+    snprintf(log_file, sizeof log_file, "multisim-%ld.log", time(NULL));
 
     fprintf(stderr, "\nWriting to log file \"%s\"...\n", log_file);
 
@@ -85,7 +85,7 @@ void signal_handler(int sig) {
 
     // cleanup
     CloseWindow();
-    selector_deinit(selector_cleanup);
+    selector_free(selector_cleanup);
     unload_default_font();
         
     exit(0);
@@ -119,7 +119,7 @@ int main(void) {
     load_random_splash_text();
 
     // the selector manages all the games and renders the title screen
-    Selector* selector = selector_init();
+    Selector* selector = selector_alloc();
     selector_cleanup = selector;
 
     signal(SIGINT, signal_handler);
@@ -137,7 +137,7 @@ int main(void) {
 
     // close the window and unload all assets (textures, images, etc.)
     CloseWindow();
-    selector_deinit(selector);
+    selector_free(selector);
     unload_default_font();
 
     return 0;

@@ -8,6 +8,7 @@
 
 #include "paddle.h"
 #include "ball.h"
+#include "powerup.c"
 
 #include <stdbool.h>
 
@@ -16,6 +17,7 @@ INCBIN(pong_hit_sound, "assets/beep.wav");
 typedef struct Score {
     uint32_t left;
     uint32_t right;
+    uint64_t total;
 } Score;
 
 typedef struct Pong {
@@ -33,50 +35,51 @@ typedef struct Pong {
     float fixed_paddle_speed;
 } Pong;
 
-Pong pong_new() {
-    Pong p;
-    p.window_size = vec2(GetScreenWidth(), GetScreenHeight());
+Pong* pong_alloc() {
+    Pong* p = (Pong*) malloc(sizeof(Pong));
+    p->window_size = vec2(GetScreenWidth(), GetScreenHeight());
     Vector2 center;
-    center.x = p.window_size.x / 2;
-    center.y = p.window_size.y / 2;
+    center.x = p->window_size.x / 2;
+    center.y = p->window_size.y / 2;
 
     float paddle_y = center.y - PADDLE_HEIGHT / 2;
 
-    p.ball.radius = BALL_RADIUS;
-    p.ball.pos = center;
-    p.ball.velocity = BALL_DEFAULT_NEG_VELOCITY; //BALL_DEFAULT_VELOCITY;
-    p.score = (Score){ 0, 0 };
+    p->ball.radius = BALL_RADIUS;
+    p->ball.pos = center;
+    p->ball.velocity = BALL_DEFAULT_NEG_VELOCITY; //BALL_DEFAULT_VELOCITY;
+    p->score = (Score){ 0, 0, 0 };
 
-    p.paddle_left = rect(
+    p->paddle_left = rect(
         PADDLE_PADDING, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT
     );
-    p.paddle_right = rect(
-        p.window_size.x - PADDLE_PADDING - PADDLE_WIDTH, paddle_y,
+    p->paddle_right = rect(
+        p->window_size.x - PADDLE_PADDING - PADDLE_WIDTH, paddle_y,
         PADDLE_WIDTH,
         PADDLE_HEIGHT
     );
-    p.state = GameState_Running;
-    p.countdown_passed = 0.0f;
-    p.hit_sound = LoadSoundFromWave(
+    p->state = GameState_Running;
+    p->countdown_passed = 0.0f;
+    p->hit_sound = LoadSoundFromWave(
         LoadWaveFromMemory(
             ".wav", pong_hit_sound_data, pong_hit_sound_size
         )
     );
-    p.score_sound = LoadSoundFromWave(
+    p->score_sound = LoadSoundFromWave(
         LoadWaveFromMemory(
             ".wav", pong_hit_sound_data, pong_hit_sound_size
         )
     );
-    SetSoundVolume(p.hit_sound, 0.3);
-    SetSoundVolume(p.score_sound, 0.5);
-    SetSoundPitch(p.score_sound, 1.6);
+    SetSoundVolume(p->hit_sound, 0.3);
+    SetSoundVolume(p->score_sound, 0.5);
+    SetSoundPitch(p->score_sound, 1.6);
 
     return p;
 }
 
-void pong_deinit(Pong* p) {
+void pong_free(Pong* p) {
     UnloadSound(p->hit_sound);
     UnloadSound(p->score_sound);
+    free(p);
 }
 
 
@@ -100,6 +103,8 @@ void pong_reset_scored(Pong* p, bool left_scored) {
 
     if (left_scored) p->score.left++;
     else p->score.right++;
+
+    p->score.total++;
 }
 
 void pong_reset(Pong* p) {
@@ -261,6 +266,10 @@ SelectedGame pong_update(Pong* p) {
             -1.0f : p->countdown_passed + p->dt;
     }
     else {
+        if ((p->score.total % 5) == 0) {
+            // Powerup spawn
+        }
+
         fixed_paddle_speed = PADDLE_SPEED * p->dt;
         if (IsKeyDown(KEY_W)) {
             p->paddle_left.y = Clamp(
@@ -342,7 +351,6 @@ void pong_handle_collision(Pong* p) {
         p->ball.pos, p->ball.radius, paddle
     )) {
         if (p->ball.pos.y < paddle.y || p->ball.pos.y > paddle.y + paddle.height) {
-            TraceLog(LOG_WARNING, "ball = (%f, %f), paddle = (%f, %f)", p->ball.pos.x, p->ball.pos.y, paddle.x, paddle.y);
             p->ball.velocity.y *= -BALL_VY_INCREASE;
         }
         p->ball.velocity.x *= -BALL_VX_INCREASE;

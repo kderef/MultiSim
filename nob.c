@@ -49,6 +49,11 @@
 #  define CFLAGS_RELEASE " -Ofast -s "
 #endif
 
+// for debug mode
+#ifndef CFLAGS_DEBUG
+#  define CFLAGS_DEBUG " -w -DDEBUG "
+#endif
+
 // windows-specific compiler flags
 #ifndef CFLAGS_WIN
 #  define CFLAGS_WIN " ./winresource/resource.o lib/WIN32/libraylib.a -lwinmm -lgdi32 -lopengl32 -I include/external/deps/mingw -L lib/WIN32/ --static "
@@ -91,8 +96,14 @@
 #  define MKDIR(_PATH) mkdir(_PATH, 0755)
 #endif
 
+typedef enum {
+    BUILD_NONE,
+    BUILD_DEBUG,
+    BUILD_RELEASE
+} BuildMode;
+
 void print_usage(const char* program) {
-    fprintf(stderr, "USAGE: %s [release/debug]\n", program);
+    fprintf(stderr, "USAGE: %s [release/debug] [run]\n", program);
 }
 
 int main(int argc, char** argv) {
@@ -103,7 +114,8 @@ int main(int argc, char** argv) {
 
     const char* resource_command = RESOURCE_COMMAND;
 
-    bool release_mode = false, mingw = false, run = false;
+    BuildMode build_mode = BUILD_NONE;
+    bool mingw = false, run = false;
     const char* program = argv[0];
 
 #define BIN_FOLDER "." PATH_SEP "bin"
@@ -114,10 +126,10 @@ int main(int argc, char** argv) {
 
     for (int i = 1; i < argc; i++) {
         if (streq(argv[i], "release")) {
-            release_mode = true;
+            build_mode = BUILD_RELEASE;
         }
         else if (streq(argv[i], "debug")) {
-            release_mode = false;
+            build_mode = BUILD_DEBUG;
         }
         else if (streq(argv[i], "mingw")) {
             mingw = true;
@@ -136,13 +148,21 @@ int main(int argc, char** argv) {
         resource_command = MINGW_RESOURCE_COMMAND;
         strcat(cflags, CFLAGS_WIN);
     }
-    if (release_mode) {
-        strcat(cflags, CFLAGS_RELEASE);
-        if (mingw) {
-            strcat(cflags, " -mwindows "); // remove console window
-        }
-    } else {
-        strcat(cflags, " -DDEBUG -w "); // add extra debug info
+    switch (build_mode) {
+        case BUILD_NONE: {
+            ERRO("No build mode selected.");
+            print_usage(program);
+            return 1;
+        } break;
+        case BUILD_RELEASE: {
+            strcat(cflags, CFLAGS_RELEASE);
+            if (mingw) {
+                strcat(cflags, " -mwindows "); // remove console window
+            }
+        } break;
+        case BUILD_DEBUG: {
+            strcat(cflags, CFLAGS_DEBUG);
+        } break;
     }
 
     if (!mingw) {

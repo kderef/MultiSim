@@ -17,23 +17,25 @@
 INCBIN(menu_img, "../assets/menu-bg.png");
 
 typedef struct Selector {
-    GameOfLife gol;
-    Dvd dvd;
-    Pong pong;
-    Galaxy galaxy;
+    GameOfLife* gol;
+    Dvd* dvd;
+    Pong* pong;
+    Galaxy* galaxy;
 
     SelectedGame selected;
     Texture2D background;
 } Selector;
 
 // create new selector
-Selector* selector_init(void) {
+Selector* selector_alloc(void) {
     Selector* s = (Selector*)malloc(sizeof(Selector));
 
-    s->gol = gol_new();
-    s->dvd = dvd_new();
-    s->pong = pong_new();
-    s->galaxy = galaxy_new();
+    if (!s) panic("Failed selector_alloc");
+
+    s->gol = gol_alloc();
+    s->dvd = dvd_alloc();
+    s->pong = pong_alloc();
+    s->galaxy = galaxy_alloc();
     s->selected = Selected_None;
 
     Image bg_img = LoadImageFromMemory(
@@ -56,8 +58,8 @@ static inline SelectedGame title_screen(Selector* s) {
     passed_time = (passed_time > 0.5f) ? 0.0f : passed_time + GetFrameTime();
     text_zoom_offset = SPLASH_TEXT_BASE + sinf(passed_time * 12);
 
-#define BUTTONS_SPACING 80
-#define BUTTON_HEIGHT 50
+    #define BUTTONS_SPACING 80
+    #define BUTTON_HEIGHT 50
 
     screen_x_center = global_state.screen_w / 2;
     screen_y_center = global_state.screen_h / 2;
@@ -115,7 +117,7 @@ static inline SelectedGame title_screen(Selector* s) {
 
 // updates the current selected game
 void selector_update(Selector* s) {
-    static SelectedGame next_game;
+    SelectedGame next_game;
 
     update_global_state();
 
@@ -124,16 +126,16 @@ void selector_update(Selector* s) {
         next_game = title_screen(s);
     } break;
     case Selected_GOL: {
-        next_game = gol_update(&(s->gol));
+        next_game = gol_update(s->gol);
     } break;
     case Selected_DVD: {
-        next_game = dvd_update(&(s->dvd));
+        next_game = dvd_update(s->dvd);
     } break;
     case Selected_PONG: {
-        next_game = pong_update(&(s->pong));
+        next_game = pong_update(s->pong);
     } break;
     case Selected_GALAXY: {
-        next_game = galaxy_update(&(s->galaxy));
+        next_game = galaxy_update(s->galaxy);
     } break;
     }
 
@@ -147,12 +149,12 @@ void selector_update(Selector* s) {
     }
 }
 
-void selector_deinit(Selector* s) {
+void selector_free(Selector* s) {
     UnloadTexture(s->background);
-    game_of_life_deinit(&(s->gol));
-    dvd_deinit(&(s->dvd));
-    pong_deinit(&(s->pong));
-    galaxy_deinit(&(s->galaxy));
+    gol_free(s->gol);
+    dvd_free(s->dvd);
+    pong_free(s->pong);
+    galaxy_free(s->galaxy);
 
     free(s);
 }

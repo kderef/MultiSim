@@ -3,6 +3,7 @@
         "*.xyz": "v",
         "selector.c": "cpp",
         "panic.h": "c",
-        "signal.h": "c"
+        "signal.h": "c",
+        "locale": "c"
     }
 }

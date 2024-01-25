@@ -23,27 +23,28 @@ typedef struct Dvd {
     int key;
 } Dvd;
 
-Dvd dvd_new() {
-    Dvd d;
-    d.state = GameState_Help;
+Dvd* dvd_alloc() {
+    Dvd* d = calloc(1, sizeof(Dvd));
+    d->state = GameState_Help;
 
     Image logo_png = LoadImageFromMemory(".png", dvd_logo_data, dvd_logo_size);
-    d.logo = LoadTextureFromImage(logo_png);
+    d->logo = LoadTextureFromImage(logo_png);
     UnloadImage(logo_png);
 
-    d.logo_size = vec2(d.logo.width, d.logo.height);
-    d.velocity  = vec2(250, 250);
-    d.inverted  = true;
-    d.rainbow   = true;
-    d.position  = vec2(
-        GetRandomValue(0, GetScreenWidth()  - d.logo.width),
-        GetRandomValue(0, GetScreenHeight() - d.logo.height)
+    d->logo_size = vec2(d->logo.width, d->logo.height);
+    d->velocity  = vec2(250, 250);
+    d->inverted  = true;
+    d->rainbow   = true;
+    d->position  = vec2(
+        GetRandomValue(0, GetScreenWidth()  - d->logo.width),
+        GetRandomValue(0, GetScreenHeight() - d->logo.height)
     );
     return d;
 }
 
-void dvd_deinit(Dvd* d) {
+void dvd_free(Dvd* d) {
     UnloadTexture(d->logo);
+    free(d);
 }
 
 static inline void dvd_set_random_pos(Dvd* d) {
