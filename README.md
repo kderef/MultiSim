@@ -43,6 +43,7 @@
 │   │   ├── theme.c             // Game of Life theme definitions
 │   │   └── universe.c          // Game of Life universe (dynamic array) implementation
 │   ├── main.c                 !// Main file, program executes from here.
+│   ├── panic.h                !// Global error handling & cleanup
 │   ├── minesweeper             // Minesweeper game
 │   │   └── minesweeper.c       // Minesweeper game logic
 │   ├── pong                    // Pong game
