@@ -270,9 +270,6 @@ SelectedGame gol_update(GameOfLife* gol) {
         1, theme_style.fg_color, theme_style.bg_color
     );
 
-#define ICON_SIZE 38
-#define ICON_PADDING 1
-
     const int icon_y = global_state.screen_h - ICON_SIZE - ICON_PADDING;
     int icon_padding_x = ICON_PADDING;
 

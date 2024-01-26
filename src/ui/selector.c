@@ -12,7 +12,6 @@
 #include "../dvd/dvd.c"
 #include "../pong/pong.c"
 #include "../minesweeper/minesweeper.c"
-#include "../galaxy/galaxy.c"
 
 INCBIN(menu_img, "../assets/menu-bg.png");
 
@@ -20,7 +19,6 @@ typedef struct Selector {
     GameOfLife* gol;
     Dvd* dvd;
     Pong* pong;
-    Galaxy* galaxy;
 
     SelectedGame selected;
     Texture2D background;
@@ -35,7 +33,6 @@ Selector* selector_alloc(void) {
     s->gol = gol_alloc();
     s->dvd = dvd_alloc();
     s->pong = pong_alloc();
-    s->galaxy = galaxy_alloc();
     s->selected = Selected_None;
 
     Image bg_img = LoadImageFromMemory(
@@ -108,16 +105,13 @@ static inline SelectedGame title_screen(Selector* s) {
     if (GuiButton(rect(button_x, button_y + 2 * BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "Pong")) {
         return Selected_PONG;
     }
-    if (GuiButton(rect(button_x, button_y + 3 * BUTTONS_SPACING, screen_x_center, BUTTON_HEIGHT), "[WIP] Galaxy")) {
-        return Selected_GALAXY;
-    }
 
     return Selected_None;
 }
 
 // updates the current selected game
 void selector_update(Selector* s) {
-    SelectedGame next_game;
+    SelectedGame next_game = Selected_None;
 
     update_global_state();
 
@@ -133,9 +127,6 @@ void selector_update(Selector* s) {
     } break;
     case Selected_PONG: {
         next_game = pong_update(s->pong);
-    } break;
-    case Selected_GALAXY: {
-        next_game = galaxy_update(s->galaxy);
     } break;
     }
 
@@ -154,7 +145,6 @@ void selector_free(Selector* s) {
     gol_free(s->gol);
     dvd_free(s->dvd);
     pong_free(s->pong);
-    galaxy_free(s->galaxy);
 
     free(s);
 }

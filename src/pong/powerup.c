@@ -1,7 +1,7 @@
 #ifndef POWERUP_C
 #define POWERUP_C
 
-#include "pong.c"
+#include "pong.h"
 #include "../gamestate.h"    
 
 #include "raylib.h"

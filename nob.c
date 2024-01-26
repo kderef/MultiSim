@@ -46,12 +46,12 @@
 
 // for release mode
 #ifndef CFLAGS_RELEASE
-#  define CFLAGS_RELEASE " -Ofast -s "
+#  define CFLAGS_RELEASE " -Oz -s "
 #endif
 
 // for debug mode
 #ifndef CFLAGS_DEBUG
-#  define CFLAGS_DEBUG " -w -DDEBUG "
+#  define CFLAGS_DEBUG " -w -DDEBUG -Og "
 #endif
 
 // windows-specific compiler flags

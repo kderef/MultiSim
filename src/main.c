@@ -1,4 +1,4 @@
-#define VERSION "2.0.6-dev"
+#define VERSION "2.0.6"
 
 // reduce file size on windows
 #ifdef _WIN32
@@ -45,7 +45,7 @@ void panic_handler(Selector* s) {
     unload_default_font();
 
     char log_file[FILENAME_MAX];
-    snprintf(log_file, sizeof log_file, "multisim-%ld.log", time(NULL));
+    snprintf(log_file, sizeof log_file, "multisim-%lld.log", time(NULL));
 
     fprintf(stderr, "\nWriting to log file \"%s\"...\n", log_file);
 
@@ -61,25 +61,9 @@ void panic_handler(Selector* s) {
     exit(0);
 }
 
-/// Handle signal `sig` and clean resources up.
-void signal_handler(int sig) {
-    char signal_str[64] = "SIG";
-#ifdef _WIN32
-    char* _siglist[] = {
-        [SIGABRT] = "SIGABRT",
-        [SIGFPE] = "SIGFPE",
-        [SIGILL] = "SIGILL",
-        [SIGINT] = "SIGINT",
-        [SIGSEGV] = "SIGSEGV",
-        [SIGTERM] = "SIGTERM"
-    };
-    strcpy(signal_str, _siglist[sig]);
-#else
-    strcat(signal_str, strsignal(sig));
-    strupper(signal_str + 3);
-    
-#endif
-    fprintf(stderr, "\nWARNING: Signal %s caught, cleaning up...\n======================================================\n", signal_str);
+/// Handle signal `sigint` and clean resources up.
+void sigint_handler(int) {
+    fprintf(stderr, "\nWARNING: Signal SIGINT (interrupt) caught, cleaning up...\n======================================================\n");
 
     SetTraceLogLevel(LOG_ALL);
 
@@ -122,8 +106,7 @@ int main(void) {
     Selector* selector = selector_alloc();
     selector_cleanup = selector;
 
-    signal(SIGINT, signal_handler);
-    signal(SIGKILL, signal_handler);
+    signal(SIGINT, sigint_handler);
 
     // if release mode, disable all logging messages except for LOG_ERROR
 #ifndef DEBUG

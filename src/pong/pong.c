@@ -9,31 +9,12 @@
 #include "paddle.h"
 #include "ball.h"
 #include "powerup.c"
+#include "pong.h"
+#include "../ui/font.c"
 
 #include <stdbool.h>
 
 INCBIN(pong_hit_sound, "assets/beep.wav");
-
-typedef struct Score {
-    uint32_t left;
-    uint32_t right;
-    uint64_t total;
-} Score;
-
-typedef struct Pong {
-    Paddle paddle_left;
-    Paddle paddle_right;
-    Ball ball;
-    GameState state;
-    float countdown_passed;
-    Sound hit_sound;
-    Sound score_sound;
-    Score score;
-    Vector2 window_size;
-
-    float dt;
-    float fixed_paddle_speed;
-} Pong;
 
 Pong* pong_alloc() {
     Pong* p = (Pong*) malloc(sizeof(Pong));

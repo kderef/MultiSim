@@ -38,6 +38,10 @@
 #define color_hex(H) \
     (Color){((H) >> 24) & 0xFF, ((H) >> 16) & 0xFF, ((H) >> 8) & 0xFF, (uint8_t)255}
 
+// Icon handling
+#define ICON_SIZE 38
+#define ICON_PADDING 1
+
 /* GOL */
 #define GOL_SCALE  14
 #define WINDOW_W   (GOL_SCALE * 57)
