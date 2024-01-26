@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
     bool mingw = false, run = false;
     const char* program = argv[0];
 
-#define BIN_FOLDER "." PATH_SEP "bin"
+    #define BIN_FOLDER "." PATH_SEP "bin"
     if (!path_is_dir(BIN_FOLDER)) {
         INFO("Creating dir: " BIN_FOLDER);
         MKDIR(BIN_FOLDER);
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
         } break;
         case BUILD_RELEASE: {
             strcat(cflags, CFLAGS_RELEASE);
-            if (mingw) {
+            if (mingw || IS_WINDOWS) {
                 strcat(cflags, " -mwindows "); // remove console window
             }
         } break;
