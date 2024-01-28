@@ -17,6 +17,12 @@
 #  define IS_APPLE 0
 #endif
 
+#ifdef __linux__
+#  define IS_LINUX 1
+#else
+#  define IS_LINUX 0
+#endif
+
 #include <stdbool.h>
 
 /************* Flags & Constants *************/
@@ -59,14 +65,20 @@
 #  define CFLAGS_WIN " ./winresource/resource.o lib/WIN32/libraylib.a -lwinmm -lgdi32 -lopengl32 -I include/external/deps/mingw -L lib/WIN32/ --static "
 #endif
 
-#ifndef RESOURCE_COMMAND
-#  define RESOURCE_COMMAND ".\\winresource\\windres.exe .\\winresource\\resource.rc -o .\\winresource\\resource.o"
-#endif
-
 // macos specific compiler flags
 #ifndef CFLAGS_APPLE
 #  define CFLAGS_APPLE " -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -L lib/macos/ lib/macos/libraylib.a "
 #endif
+
+// Linux-specific compiler flags
+#ifndef CFLAGS_LINUX
+#  define CFLAGS_LINUX " lib/linux/libraylib.a "
+#endif
+
+#ifndef RESOURCE_COMMAND
+#  define RESOURCE_COMMAND ".\\winresource\\windres.exe .\\winresource\\resource.rc -o .\\winresource\\resource.o"
+#endif
+
 
 // raylib linking flags
 #ifndef RAYFLAGS
@@ -168,11 +180,13 @@ int main(int argc, char** argv) {
         case BUILD_DEBUG: {
             strcat(cflags, CFLAGS_DEBUG);
         } break;
+        default: {} // TODO
     }
 
     if (!mingw) {
         if (IS_WINDOWS) strcat(cflags, CFLAGS_WIN);
         else if (IS_APPLE) strcat(cflags, CFLAGS_APPLE);
+        else if (IS_LINUX) strcat(cflags, CFLAGS_LINUX);
     }
 
     strcat(cflags, RAYFLAGS);
