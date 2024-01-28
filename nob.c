@@ -46,7 +46,7 @@
 
 // for release mode
 #ifndef CFLAGS_RELEASE
-#  define CFLAGS_RELEASE " -Oz -s "
+#  define CFLAGS_RELEASE " -Ofast -s "
 #endif
 
 // for debug mode
@@ -99,7 +99,8 @@
 typedef enum {
     BUILD_NONE,
     BUILD_DEBUG,
-    BUILD_RELEASE
+    BUILD_RELEASE,
+    BUILD_WEB
 } BuildMode;
 
 void print_usage(const char* program) {
@@ -136,6 +137,10 @@ int main(int argc, char** argv) {
         }
         else if (streq(argv[i], "run")) {
             run = true;
+        }
+        else if (streq(argv[i], "web")) {
+            build_mode = BUILD_WEB;
+            cc = "emcc";
         }
         else {
             ERRO("Unkown argument: %s", argv[i]);
