@@ -45,7 +45,14 @@ void panic_handler(Selector* s) {
     unload_default_font();
 
     char log_file[FILENAME_MAX];
-    snprintf(log_file, sizeof log_file, "multisim-%lld.log", time(NULL));
+
+#ifdef _WIN32
+    const char *log_fmt = "multisim-%lld.log";
+#else
+    const char *log_fmt = "multisim-%ld.log";
+#endif
+
+    snprintf(log_file, sizeof log_file, log_fmt, time(NULL));
 
     fprintf(stderr, "\nWriting to log file \"%s\"...\n", log_file);
 
