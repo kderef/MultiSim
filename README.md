@@ -30,8 +30,7 @@
 │   │   └── libraylib.a  
 │   ├── macos                   // Compiled for MacOS
 │   │   └── libraylib.a  
-├── nob.c                       // The build file, compile and run this to build the project.
-├── nob.h                       // Header to assist in building, from https://github.com/tsoding/nobuild
+├── Makefile                   !// Build system, run `make` to compile.
 ├── src                         // The directory containing original source code.
 │   ├── const.h                !// Constants, constant initializers and macro's
 │   ├── dvd                     // DvD game
@@ -90,18 +89,16 @@ or you can **build it from source**.
 Before building you need to have installed on your system:  
 - [git](https://git-scm.com/book/en/v2/Getting-Started-The-Command-Line)  
 - A C compiler. It works out of the box with [Mingw-w64](https://www.mingw-w64.org/), [GCC](https://gcc.gnu.org/) and [Clang](https://clang.llvm.org/).  
+- [Gnu Make](https://www.gnu.org/software/make/) to run the `make` command
 
 Then run the following command in your terminal.  
-**NOTE**: replace *{CC}* with your C compiler of choice (*gcc, clang, etc.*).  
-**NOTE**: When cross compiling with mingw, pass **mingw** as an argument to ./nob  
+**NOTE**: The compiler variable `CC` defined in the `Makefile` defaults to **gcc**, make sure you modify it or install gcc.
+**NOTE**: When cross compiling with mingw, pass **mingw** as an argument to `make`  
 ```
 git clone https://github.com/kn-ht/multisim
 cd multisim
-{CC} nob.c -o nob
-./nob release
+make release
 ```
-
-**NOTE:** You only need to bootstrap (_compile_) the **nob** executable once, on subsequent runs it will recompile itself.
 
 The compiled executable will be in the ./bin/ folder.
  

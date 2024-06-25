@@ -164,6 +164,10 @@ SelectedGame gol_update(GameOfLife* gol) {
         global_state.show_fps = !global_state.show_fps;
     } break;
     case KEY_F11: {
+        int monitor = GetCurrentMonitor();
+        int monitor_width = GetMonitorWidth(monitor);
+        int monitor_height = GetMonitorHeight(monitor);
+        SetWindowSize(monitor_width, monitor_height);
         ToggleFullscreen();
     } break;
     default: {}
