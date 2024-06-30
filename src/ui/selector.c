@@ -86,7 +86,7 @@ static inline SelectedGame title_screen(Selector* s) {
         OpenURL(GIT_URL);
     }
     GuiDrawText("Version " VERSION, rect(0, global_state.screen_h - 60, 200, 20), TEXT_ALIGN_LEFT, GRAY);
-    GuiDrawText("By Kian (kn-ht)", rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
+    GuiDrawText("By Kian (kderef)", rect(0, global_state.screen_h - 40, 200, 20), TEXT_ALIGN_LEFT, GRAY);
     GuiDrawText("Written using         " RAYLIB_VERSION, rect(0, global_state.screen_h - 20, 300, 20), TEXT_ALIGN_LEFT, GRAY);
     if (GuiLabelButton(rect(133, global_state.screen_h - 20, 60, 20), "Raylib")) {
         OpenURL("https://github.com/raysan5/raylib");
