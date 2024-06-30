@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // URL to the repository
-#define GIT_URL "https://github.com/kn-ht/multisim"
+#define GIT_URL "https://github.com/kderef/multisim"
 
 // raylib defines
 #define vec2(X, Y) (Vector2){(float)(X), (float)(Y)}
